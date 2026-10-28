@@ -1,0 +1,30 @@
+{
+  "name": "settings-update-admin",
+  "note": "Mutates settings; later cases expect fee 120.00",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/settings/",
+    "auth": "admin",
+    "body": {
+      "business_name": "Synthetic PlayArea Updated",
+      "checkin_fee": "120.00",
+      "currency_symbol": "Rs",
+      "primary_color": "#112233",
+      "primary_hover_color": "#445566",
+      "app_title": "Venuity Test"
+    }
+  },
+  "response": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "business_name": "Synthetic PlayArea Updated",
+      "currency_symbol": "Rs",
+      "checkin_fee": "120.00",
+      "primary_color": "#112233",
+      "primary_hover_color": "#445566",
+      "logo_url": "/logo.png",
+      "app_title": "Venuity Test"
+    }
+  }
+}

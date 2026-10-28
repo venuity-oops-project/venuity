@@ -1,0 +1,25 @@
+{
+  "name": "customers-create",
+  "note": "",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/customers/",
+    "auth": "staff",
+    "body": {
+      "name": "Synthetic New Customer",
+      "initial_balance": "15.50",
+      "qr_id": "30000000-0000-4000-8000-000000000001"
+    }
+  },
+  "response": {
+    "status": 201,
+    "content_type": "application/json",
+    "body": {
+      "public_id": "12ae31f0-f068-4b93-aed9-a54b8034cf75",
+      "name": "Synthetic New Customer",
+      "balance": "15.50",
+      "qr_id": "30000000-0000-4000-8000-000000000001",
+      "created_at": "2026-10-26T10:08:22.736001+05:30"
+    }
+  }
+}

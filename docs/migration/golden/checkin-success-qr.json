@@ -1,0 +1,27 @@
+{
+  "name": "checkin-success-qr",
+  "note": "Mutates Meera's balance; fee is 120.00 after settings update",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/customers/checkin/",
+    "auth": "staff",
+    "body": {
+      "qr_id": "10000000-0000-4000-8000-000000000006"
+    }
+  },
+  "response": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "success": true,
+      "customer": {
+        "public_id": "00000000-0000-4000-8000-000000000006",
+        "name": "Meera Iyer",
+        "balance": "880.00",
+        "qr_id": "10000000-0000-4000-8000-000000000006",
+        "created_at": "2026-04-06T10:05:00+05:30"
+      },
+      "fee_charged": "120.00"
+    }
+  }
+}

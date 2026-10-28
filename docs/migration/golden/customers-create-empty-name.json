@@ -1,0 +1,25 @@
+{
+  "name": "customers-create-empty-name",
+  "note": "",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/customers/",
+    "auth": "staff",
+    "body": {
+      "name": "   "
+    }
+  },
+  "response": {
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "error": "Validation failed.",
+      "code": "validation_error",
+      "detail": {
+        "name": [
+          "This field may not be blank."
+        ]
+      }
+    }
+  }
+}

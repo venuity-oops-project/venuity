@@ -1,0 +1,21 @@
+{
+  "name": "recharge-customer-not-found",
+  "note": "",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/customers/recharge/",
+    "auth": "staff",
+    "body": {
+      "customer_id": "00000000-0000-4000-8000-00000000ffff",
+      "amount": "10.00"
+    }
+  },
+  "response": {
+    "status": 500,
+    "content_type": "application/json",
+    "body": {
+      "error": "An internal server error occurred.",
+      "code": "server_error"
+    }
+  }
+}

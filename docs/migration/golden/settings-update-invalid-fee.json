@@ -1,0 +1,25 @@
+{
+  "name": "settings-update-invalid-fee",
+  "note": "",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/settings/",
+    "auth": "admin",
+    "body": {
+      "checkin_fee": "-5.00"
+    }
+  },
+  "response": {
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "error": "Validation failed.",
+      "code": "validation_error",
+      "detail": {
+        "checkin_fee": [
+          "Ensure this value is greater than or equal to 0."
+        ]
+      }
+    }
+  }
+}

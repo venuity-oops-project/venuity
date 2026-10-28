@@ -1,0 +1,27 @@
+{
+  "name": "recharge-zero-balance-customer",
+  "note": "Mutates José's balance",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/customers/recharge/",
+    "auth": "staff",
+    "body": {
+      "customer_id": "00000000-0000-4000-8000-000000000002",
+      "amount": "10.00"
+    }
+  },
+  "response": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "success": true,
+      "customer": {
+        "public_id": "00000000-0000-4000-8000-000000000002",
+        "name": "José Núñez",
+        "balance": "10.00",
+        "qr_id": "10000000-0000-4000-8000-000000000002",
+        "created_at": "2026-04-02T10:01:00+05:30"
+      }
+    }
+  }
+}

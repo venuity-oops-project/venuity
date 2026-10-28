@@ -1,0 +1,23 @@
+{
+  "name": "settings-get-staff",
+  "note": "",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/settings/",
+    "auth": "staff",
+    "body": null
+  },
+  "response": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "business_name": "Synthetic PlayArea",
+      "currency_symbol": "₹",
+      "checkin_fee": "100.00",
+      "primary_color": "#6366f1",
+      "primary_hover_color": "#4f46e5",
+      "logo_url": "/logo.png",
+      "app_title": "Venuity"
+    }
+  }
+}

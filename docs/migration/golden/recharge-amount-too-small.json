@@ -1,0 +1,26 @@
+{
+  "name": "recharge-amount-too-small",
+  "note": "",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/customers/recharge/",
+    "auth": "staff",
+    "body": {
+      "customer_id": "00000000-0000-4000-8000-000000000001",
+      "amount": "0.00"
+    }
+  },
+  "response": {
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "error": "Validation failed.",
+      "code": "validation_error",
+      "detail": {
+        "amount": [
+          "Ensure this value is greater than or equal to 0.01."
+        ]
+      }
+    }
+  }
+}

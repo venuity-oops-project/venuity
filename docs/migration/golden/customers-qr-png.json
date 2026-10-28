@@ -1,0 +1,19 @@
+{
+  "name": "customers-qr-png",
+  "note": "",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/customers/00000000-0000-4000-8000-000000000001/qr/",
+    "auth": "staff",
+    "body": null
+  },
+  "response": {
+    "status": 200,
+    "content_type": "image/png",
+    "body": {
+      "binary": "customers-qr-png.png",
+      "bytes": 855,
+      "sha256": "956d28f63814fe20b60d1801a3692d6aa14113638d312deff155603f1b62c2bb"
+    }
+  }
+}

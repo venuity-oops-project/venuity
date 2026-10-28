@@ -1,0 +1,29 @@
+{
+  "name": "customers-search",
+  "note": "",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/customers/?search=asha",
+    "auth": "staff",
+    "body": null
+  },
+  "response": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "count": 1,
+      "total_pages": 1,
+      "next": null,
+      "previous": null,
+      "results": [
+        {
+          "public_id": "00000000-0000-4000-8000-000000000001",
+          "name": "Asha Rao",
+          "balance": "250.00",
+          "qr_id": "10000000-0000-4000-8000-000000000001",
+          "created_at": "2026-04-01T10:00:00+05:30"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "checkin-missing-identifier",
+  "note": "",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/customers/checkin/",
+    "auth": "staff",
+    "body": {}
+  },
+  "response": {
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "error": "Validation failed.",
+      "code": "validation_error",
+      "detail": {
+        "non_field_errors": [
+          "Either customer_id or qr_id must be provided."
+        ]
+      }
+    }
+  }
+}

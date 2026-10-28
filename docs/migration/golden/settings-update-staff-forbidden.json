@@ -1,0 +1,20 @@
+{
+  "name": "settings-update-staff-forbidden",
+  "note": "",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/settings/",
+    "auth": "staff",
+    "body": {
+      "checkin_fee": "1.00"
+    }
+  },
+  "response": {
+    "status": 403,
+    "content_type": "application/json",
+    "body": {
+      "error": "You do not have permission to perform this action. Admin access required.",
+      "code": "permission_denied"
+    }
+  }
+}

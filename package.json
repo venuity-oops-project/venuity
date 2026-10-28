@@ -1,19 +1,11 @@
 {
   "name": "venuity",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "author": "Aaron S Christo",
-  "description": "Venuity - Tauri desktop app",
+  "description": "Venuity - PlayArea Manager (Java 25 Single-JAR)",
   "scripts": {
-    "dev": "tauri dev",
-    "build": "tauri build",
-    "tauri": "tauri"
-  },
-  "dependencies": {
-    "@tauri-apps/api": "^2.11.1",
-    "@tauri-apps/plugin-barcode-scanner": "^2.4.4",
-    "@tauri-apps/plugin-log": "^2.8.0"
-  },
-  "devDependencies": {
-    "@tauri-apps/cli": "^2.11.2"
+    "start": "powershell -NoProfile -ExecutionPolicy Bypass -File ./run.ps1",
+    "run:java": "powershell -NoProfile -ExecutionPolicy Bypass -File ./run.ps1",
+    "build:java": "cd java && .\\mvnw.cmd -B -ntp -pl venuity-server -am -DskipTests package"
   }
 }

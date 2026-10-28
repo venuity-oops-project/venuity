@@ -1,0 +1,18 @@
+{
+  "name": "customers-list-unauthenticated",
+  "note": "",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/customers/",
+    "auth": null,
+    "body": null
+  },
+  "response": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": "Authentication credentials were not provided.",
+      "code": "not_authenticated"
+    }
+  }
+}

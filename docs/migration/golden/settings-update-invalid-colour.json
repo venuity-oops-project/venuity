@@ -1,0 +1,19 @@
+{
+  "name": "settings-update-invalid-colour",
+  "note": "",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/settings/",
+    "auth": "admin",
+    "body": {
+      "primary_color": "red"
+    }
+  },
+  "response": {
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "error": "Invalid color format for primary_color: must start with #"
+    }
+  }
+}

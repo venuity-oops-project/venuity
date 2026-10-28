@@ -1,0 +1,15 @@
+{
+  "name": "customers-delete-admin",
+  "note": "",
+  "request": {
+    "method": "DELETE",
+    "path": "/api/v1/customers/12ae31f0-f068-4b93-aed9-a54b8034cf75/",
+    "auth": "admin",
+    "body": null
+  },
+  "response": {
+    "status": 204,
+    "content_type": null,
+    "body": ""
+  }
+}

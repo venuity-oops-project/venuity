@@ -1,0 +1,27 @@
+{
+  "name": "recharge-success",
+  "note": "Mutates Asha's balance",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/customers/recharge/",
+    "auth": "staff",
+    "body": {
+      "customer_id": "00000000-0000-4000-8000-000000000001",
+      "amount": "50.25"
+    }
+  },
+  "response": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "success": true,
+      "customer": {
+        "public_id": "00000000-0000-4000-8000-000000000001",
+        "name": "Asha Rao",
+        "balance": "300.25",
+        "qr_id": "10000000-0000-4000-8000-000000000001",
+        "created_at": "2026-04-01T10:00:00+05:30"
+      }
+    }
+  }
+}

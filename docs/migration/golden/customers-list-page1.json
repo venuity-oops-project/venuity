@@ -1,0 +1,57 @@
+{
+  "name": "customers-list-page1",
+  "note": "",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/customers/?page=1&page_size=5",
+    "auth": "staff",
+    "body": null
+  },
+  "response": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "count": 12,
+      "total_pages": 3,
+      "next": "http://testserver/api/v1/customers/?page=2&page_size=5",
+      "previous": null,
+      "results": [
+        {
+          "public_id": "00000000-0000-4000-8000-00000000000c",
+          "name": "Test Zero",
+          "balance": "0.00",
+          "qr_id": "10000000-0000-4000-8000-00000000000c",
+          "created_at": "2026-04-12T10:11:00+05:30"
+        },
+        {
+          "public_id": "00000000-0000-4000-8000-00000000000b",
+          "name": "Alice Johnson",
+          "balance": "777.77",
+          "qr_id": "10000000-0000-4000-8000-00000000000b",
+          "created_at": "2026-04-11T10:10:00+05:30"
+        },
+        {
+          "public_id": "00000000-0000-4000-8000-00000000000a",
+          "name": "Bob Smith",
+          "balance": "42.00",
+          "qr_id": "10000000-0000-4000-8000-00000000000a",
+          "created_at": "2026-04-10T10:09:00+05:30"
+        },
+        {
+          "public_id": "00000000-0000-4000-8000-000000000009",
+          "name": "山田 太郎",
+          "balance": "1234567.89",
+          "qr_id": "10000000-0000-4000-8000-000000000009",
+          "created_at": "2026-04-09T10:08:00+05:30"
+        },
+        {
+          "public_id": "00000000-0000-4000-8000-000000000008",
+          "name": "Élodie Martin",
+          "balance": "100000.00",
+          "qr_id": "10000000-0000-4000-8000-000000000008",
+          "created_at": "2026-04-08T10:07:00+05:30"
+        }
+      ]
+    }
+  }
+}

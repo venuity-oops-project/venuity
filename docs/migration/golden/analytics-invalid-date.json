@@ -1,0 +1,47 @@
+{
+  "name": "analytics-invalid-date",
+  "note": "",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/analytics/?interval=hourly&metric=revenue&date=not-a-date",
+    "auth": "staff",
+    "body": null
+  },
+  "response": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "labels": [
+        "9:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00",
+        "14:00",
+        "15:00",
+        "16:00",
+        "17:00",
+        "18:00",
+        "19:00",
+        "20:00"
+      ],
+      "data": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "display_date": "October 26, 2026",
+      "interval": "hourly",
+      "metric": "revenue"
+    }
+  }
+}

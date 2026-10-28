@@ -1,0 +1,19 @@
+{
+  "name": "checkin-invalid-qr",
+  "note": "",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/customers/checkin/",
+    "auth": "staff",
+    "body": {
+      "qr_id": "10000000-0000-4000-8000-00000000ffff"
+    }
+  },
+  "response": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": "Customer not found for identifier: 10000000-0000-4000-8000-00000000ffff"
+    }
+  }
+}

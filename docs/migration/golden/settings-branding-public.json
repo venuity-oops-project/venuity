@@ -1,0 +1,21 @@
+{
+  "name": "settings-branding-public",
+  "note": "",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/settings/branding/",
+    "auth": null,
+    "body": null
+  },
+  "response": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "logo_url": "/logo.png",
+      "primary_hover_color": "#4f46e5",
+      "app_title": "Venuity",
+      "primary_color": "#6366f1",
+      "business_name": "Synthetic PlayArea"
+    }
+  }
+}

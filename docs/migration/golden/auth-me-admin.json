@@ -1,0 +1,25 @@
+{
+  "name": "auth-me-admin",
+  "note": "",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/auth/me/",
+    "auth": "admin",
+    "body": null
+  },
+  "response": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "public_id": "38f0a888-2d6b-4a13-8581-d76013121326",
+      "username": "admin",
+      "email": "admin@example.invalid",
+      "first_name": "",
+      "last_name": "",
+      "is_staff": true,
+      "is_superuser": true,
+      "last_login": "2026-10-26T10:08:21.978597+05:30",
+      "date_joined": "2026-10-26T10:08:18.053457+05:30"
+    }
+  }
+}

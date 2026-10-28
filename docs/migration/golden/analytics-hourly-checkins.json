@@ -1,0 +1,47 @@
+{
+  "name": "analytics-hourly-checkins",
+  "note": "",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/analytics/?interval=hourly&metric=checkins&date=2026-04-20",
+    "auth": "staff",
+    "body": null
+  },
+  "response": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "labels": [
+        "9:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00",
+        "14:00",
+        "15:00",
+        "16:00",
+        "17:00",
+        "18:00",
+        "19:00",
+        "20:00"
+      ],
+      "data": [
+        0,
+        1,
+        1,
+        0,
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "display_date": "April 20, 2026",
+      "interval": "hourly",
+      "metric": "checkins"
+    }
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "name": "transactions-filter-checkin",
+  "note": "",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/transactions/?type=checkin",
+    "auth": "staff",
+    "body": null
+  },
+  "response": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "count": 8,
+      "total_pages": 1,
+      "next": null,
+      "previous": null,
+      "results": [
+        {
+          "id": 10,
+          "customer_id": "00000000-0000-4000-8000-00000000000a",
+          "customer_name": "Bob Smith",
+          "type": "checkin",
+          "amount": "100.00",
+          "notes": "",
+          "created_at": "2026-04-20T19:00:00+05:30"
+        },
+        {
+          "id": 8,
+          "customer_id": "00000000-0000-4000-8000-000000000008",
+          "customer_name": "Élodie Martin",
+          "type": "checkin",
+          "amount": "100.00",
+          "notes": "",
+          "created_at": "2026-04-20T15:00:00+05:30"
+        },
+        {
+          "id": 6,
+          "customer_id": "00000000-0000-4000-8000-000000000006",
+          "customer_name": "Meera Iyer",
+          "type": "checkin",
+          "amount": "100.00",
+          "notes": "",
+          "created_at": "2026-04-20T13:00:00+05:30"
+        },
+        {
+          "id": 4,
+          "customer_id": "00000000-0000-4000-8000-000000000004",
+          "customer_name": "Zoë O'Brien",
+          "type": "checkin",
+          "amount": "100.00",
+          "notes": "",
+          "created_at": "2026-04-20T11:00:00+05:30"
+        },
+        {
+          "id": 3,
+          "customer_id": "00000000-0000-4000-8000-000000000003",
+          "customer_name": "李雷",
+          "type": "checkin",
+          "amount": "100.00",
+          "notes": "",
+          "created_at": "2026-04-20T10:00:00+05:30"
+        },
+        {
+          "id": 13,
+          "customer_id": "00000000-0000-4000-8000-000000000005",
+          "customer_name": "Arjun Mehta",
+          "type": "checkin",
+          "amount": "100.00",
+          "notes": "Synthetic fixture",
+          "created_at": "2026-03-18T12:00:00+05:30"
+        },
+        {
+          "id": 17,
+          "customer_id": "00000000-0000-4000-8000-000000000002",
+          "customer_name": "José Núñez",
+          "type": "checkin",
+          "amount": "200.50",
+          "notes": "Synthetic reconciliation",
+          "created_at": "2026-01-01T09:01:00+05:30"
+        },
+        {
+          "id": 16,
+          "customer_id": "00000000-0000-4000-8000-000000000001",
+          "customer_name": "Asha Rao",
+          "type": "checkin",
+          "amount": "1310.00",
+          "notes": "Synthetic reconciliation",
+          "created_at": "2026-01-01T09:00:00+05:30"
+        }
+      ]
+    }
+  }
+}

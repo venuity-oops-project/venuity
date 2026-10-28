@@ -1,0 +1,14 @@
+package com.venuity.common;
+
+public enum ErrorCode {
+    VALIDATION_FAILED,
+    UNAUTHORIZED,
+    FORBIDDEN,
+    NOT_FOUND,
+    CUSTOMER_INACTIVE,
+    INVALID_QR,
+    INSUFFICIENT_BALANCE,
+    AMOUNT_OUT_OF_RANGE,
+    IDEMPOTENCY_CONFLICT,
+    INTERNAL_ERROR
+}

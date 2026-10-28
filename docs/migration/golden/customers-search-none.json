@@ -1,0 +1,21 @@
+{
+  "name": "customers-search-none",
+  "note": "",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/customers/?search=zzzz-nobody",
+    "auth": "staff",
+    "body": null
+  },
+  "response": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "count": 0,
+      "total_pages": 1,
+      "next": null,
+      "previous": null,
+      "results": []
+    }
+  }
+}

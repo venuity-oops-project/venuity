@@ -1,0 +1,19 @@
+{
+  "name": "checkin-insufficient",
+  "note": "Li Lei has 0.01",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/customers/checkin/",
+    "auth": "staff",
+    "body": {
+      "qr_id": "10000000-0000-4000-8000-000000000003"
+    }
+  },
+  "response": {
+    "status": 402,
+    "content_type": "application/json",
+    "body": {
+      "error": "Insufficient balance. Required: 120.00, Available: 0.01"
+    }
+  }
+}

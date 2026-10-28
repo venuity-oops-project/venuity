@@ -1,0 +1,37 @@
+{
+  "name": "analytics-weekly-revenue",
+  "note": "",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/analytics/?interval=weekly&metric=revenue&date=2026-04-20",
+    "auth": "staff",
+    "body": null
+  },
+  "response": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "labels": [
+        "Mon 20",
+        "Tue 21",
+        "Wed 22",
+        "Thu 23",
+        "Fri 24",
+        "Sat 25",
+        "Sun 26"
+      ],
+      "data": [
+        2130.75,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "display_date": "April 20, 2026",
+      "interval": "weekly",
+      "metric": "revenue"
+    }
+  }
+}

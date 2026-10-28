@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: venuity-server
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:venuity}?connectionTimeZone=UTC&useUnicode=true&characterEncoding=utf8
+    username: ${DB_USER:venuity}
+    password: ${DB_PASSWORD:venuity}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:20}
+      connection-timeout: 10000
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: ${SERVER_PORT:8080}
+  tomcat:
+    max-http-form-post-size: 1MB
+
+venuity:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-venuity-secret-change-me-32-bytes}
+    access-minutes: ${JWT_ACCESS_MINUTES:480}
+    refresh-days: ${JWT_REFRESH_DAYS:7}
+  bootstrap:
+    admin-username: ${BOOTSTRAP_ADMIN_USER:}
+    admin-password: ${BOOTSTRAP_ADMIN_PASSWORD:}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html

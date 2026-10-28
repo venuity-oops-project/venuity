@@ -1,0 +1,32 @@
+{
+  "name": "auth-login-success",
+  "note": "",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/auth/token/",
+    "auth": null,
+    "body": {
+      "username": "admin",
+      "password": "Admin#12345"
+    }
+  },
+  "response": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "refresh": "<redacted>",
+      "access": "<redacted>",
+      "user": {
+        "public_id": "38f0a888-2d6b-4a13-8581-d76013121326",
+        "username": "admin",
+        "email": "admin@example.invalid",
+        "first_name": "",
+        "last_name": "",
+        "is_staff": true,
+        "is_superuser": true,
+        "last_login": "2026-10-26T10:08:21.978597+05:30",
+        "date_joined": "2026-10-26T10:08:18.053457+05:30"
+      }
+    }
+  }
+}

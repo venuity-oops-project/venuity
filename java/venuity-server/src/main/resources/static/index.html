@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="description" content="Venuity - customer check-ins, wallets and analytics for play areas." />
+    <link rel="stylesheet" href="/vendor/fonts/poppins.css" />
+    <link rel="stylesheet" href="/vendor/boxicons/css/boxicons.min.css" />
+    <link rel="stylesheet" href="/css/app.css" />
+    <title>PlayArea Manager</title>
+    <script>
+      (function () {
+        if (localStorage.getItem('theme') !== 'light') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+        try {
+          var cached = JSON.parse(localStorage.getItem('venuity_settings') || '{}');
+          if (cached.businessName) document.title = cached.appTitle || cached.businessName;
+          if (cached.primaryColor) document.documentElement.style.setProperty('--primary-color', cached.primaryColor);
+          if (cached.primaryHoverColor) document.documentElement.style.setProperty('--primary-hover', cached.primaryHoverColor);
+        } catch (ignored) {
+          /* Cached settings are best-effort. */
+        }
+      })();
+    </script>
+  </head>
+  <body class="preload">
+    <div id="app">
+      <div class="app-loading" role="status" aria-live="polite">
+        <div class="app-loading-logo"><i class="bx bx-qr"></i></div>
+        <div class="spinner" aria-hidden="true"></div>
+        <p>Loading Venuity...</p>
+      </div>
+    </div>
+    <noscript>
+      <div class="noscript-message">
+        Venuity needs JavaScript enabled in your browser.
+      </div>
+    </noscript>
+    <script src="/vendor/chart.umd.min.js"></script>
+    <script src="/vendor/jsQR.min.js"></script>
+    <script type="module" src="/js/app.js"></script>
+  </body>
+</html>
