@@ -7,6 +7,7 @@ import {
   busyButton,
   escapeHtml,
   icon,
+  openModal,
   pageHeader,
   qs,
   toast,
@@ -18,8 +19,12 @@ export function mount(root) {
   const isAdmin = state.user && state.user.role === 'ADMIN';
   const initial = state.settings;
 
+  const headerActions = isAdmin
+    ? `<button type="button" class="btn btn-primary" id="btn-header-add-user">${icon('bx-user-plus')} Add user</button>`
+    : '';
+
   root.innerHTML = `
-    ${pageHeader('Settings', 'Configure your business, branding and check-in fee.')}
+    ${pageHeader('Settings', 'Configure your business, branding, fees and staff accounts.', headerActions)}
     ${isAdmin ? '' : `
       <div class="admin-notice">
         ${icon('bx-lock-alt')}
@@ -123,6 +128,17 @@ export function mount(root) {
           <p class="muted" style="font-size:12px;line-height:1.5;margin:8px 0 0">
             Deducted from the customer wallet on every check-in.
           </p>
+        </div>
+        <div class="glass-card" style="padding:18px;margin-top:16px">
+          <div class="preview-label" style="display:flex;align-items:center;gap:6px">
+            ${icon('bx-user')} User accounts
+          </div>
+          <p class="muted" style="font-size:12px;line-height:1.5;margin:8px 0 14px">
+            Add staff or administrator accounts for your team.
+          </p>
+          <button type="button" class="btn btn-secondary" id="btn-aside-add-user" style="width:100%;justify-content:center" ${isAdmin ? '' : 'disabled'}>
+            ${icon('bx-user-plus')} Add new user
+          </button>
         </div>
       </aside>
     </div>
@@ -287,6 +303,112 @@ export function mount(root) {
       if (!isAdmin) saveButton.disabled = true;
     }
   });
+
+  function openAddUserModal() {
+    openModal({
+      title: 'Add New User',
+      subtitle: 'Create a staff or administrator login account.',
+      size: 'narrow',
+      body: `
+        <form id="new-user-form" autocomplete="off">
+          <div id="new-user-error" style="display:none;margin-bottom:16px;padding:10px 14px;border-radius:10px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#ef4444;font-size:13px"></div>
+          <div class="form-group">
+            <label for="nu-username">Username *</label>
+            <input class="form-input" id="nu-username" maxlength="150" required placeholder="e.g. cashier1" autocomplete="new-username">
+          </div>
+          <div class="form-group">
+            <label for="nu-password">Password *</label>
+            <input class="form-input" id="nu-password" type="password" required minlength="4" placeholder="Minimum 4 characters" autocomplete="new-password">
+          </div>
+          <div class="form-group">
+            <label for="nu-role">Role *</label>
+            <select class="form-input" id="nu-role" required style="cursor:pointer">
+              <option value="STAFF" selected>Staff (Recharge, Check-in, View)</option>
+              <option value="ADMIN">Admin (Full administrative access)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="nu-email">Email (optional)</label>
+            <input class="form-input" id="nu-email" type="email" maxlength="254" placeholder="staff@playarea.com">
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="nu-firstname">First name (optional)</label>
+              <input class="form-input" id="nu-firstname" maxlength="150">
+            </div>
+            <div class="form-group">
+              <label for="nu-lastname">Last name (optional)</label>
+              <input class="form-input" id="nu-lastname" maxlength="150">
+            </div>
+          </div>
+        </form>
+      `,
+      footer: `
+        <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
+        <button type="submit" form="new-user-form" class="btn btn-primary" id="nu-submit">
+          ${icon('bx-user-plus')} Create user
+        </button>
+      `,
+      onMount(modalRoot, close) {
+        const userForm = qs('#new-user-form', modalRoot);
+        const usernameInput = qs('#nu-username', modalRoot);
+        const passwordInput = qs('#nu-password', modalRoot);
+        const roleSelect = qs('#nu-role', modalRoot);
+        const emailInput = qs('#nu-email', modalRoot);
+        const firstNameInput = qs('#nu-firstname', modalRoot);
+        const lastNameInput = qs('#nu-lastname', modalRoot);
+        const submitBtn = qs('#nu-submit', modalRoot);
+        const errorBox = qs('#new-user-error', modalRoot);
+
+        userForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          errorBox.style.display = 'none';
+
+          const uname = usernameInput.value.trim();
+          const pwd = passwordInput.value;
+          if (!uname) {
+            errorBox.textContent = 'Username is required.';
+            errorBox.style.display = 'block';
+            return;
+          }
+          if (!pwd || pwd.length < 4) {
+            errorBox.textContent = 'Password must be at least 4 characters.';
+            errorBox.style.display = 'block';
+            return;
+          }
+
+          busyButton(submitBtn, true, 'Creating...');
+          try {
+            const newUser = await api.createUser({
+              username: uname,
+              password: pwd,
+              role: roleSelect.value,
+              email: emailInput.value.trim() || undefined,
+              firstName: firstNameInput.value.trim() || undefined,
+              lastName: lastNameInput.value.trim() || undefined,
+            });
+            toast(`User '${newUser.username}' created successfully as ${newUser.role}!`, 'success');
+            close();
+          } catch (err) {
+            errorBox.textContent = err.message || 'Failed to create user.';
+            errorBox.style.display = 'block';
+          } finally {
+            busyButton(submitBtn, false);
+          }
+        });
+      },
+    });
+  }
+
+  const headerAddUserBtn = qs('#btn-header-add-user', root);
+  if (headerAddUserBtn) {
+    headerAddUserBtn.addEventListener('click', openAddUserModal);
+  }
+
+  const asideAddUserBtn = qs('#btn-aside-add-user', root);
+  if (asideAddUserBtn) {
+    asideAddUserBtn.addEventListener('click', openAddUserModal);
+  }
 
   api
     .settings()

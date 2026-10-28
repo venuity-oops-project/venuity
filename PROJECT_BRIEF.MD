@@ -22,7 +22,7 @@ The entire application (Spring Boot backend, Flyway database migrations, and bun
 
 ## 5. Single-Command Launchers
 The application can be started using a single command from the project root or the `java/` folder:
-- **PowerShell:** `.\run.ps1` or `.\java\run.ps1`
+- **PowerShell:** `.\run.ps1` or `.\java\run.ps1` (supports `-ForceRebuild` and `-SkipBuild` switches)
 - **Windows Command Prompt:** `run.bat`
 - **Unix / macOS / WSL:** `./run.sh`
 - **NPM Script:** `npm start`
@@ -31,8 +31,9 @@ The runner automates:
 1. Environment preparation (copies `.env.example` to `.env` if not present with safe local defaults).
 2. Starting and awaiting the MySQL 8.4 Docker container (`docker compose up -d --wait mysql`).
 3. Verifying the Java 25 runtime environment.
-4. Incremental packaging of `venuity.jar` when source files are updated.
-5. Launching the single runnable JAR and serving the app at `http://localhost:8080`.
+4. Incremental packaging of `venuity.jar` when source files are updated (`venuity-server/src`, `venuity-common/src`, `pom.xml`).
+5. Process and port collision detection: checks for existing processes locking `venuity.jar` or listening on port 8080 before building or launching, preventing Windows file lock exceptions (`Unable to rename 'venuity.jar'`) and port bind conflicts.
+6. Launching the single runnable JAR and serving the app at `http://localhost:8080`.
 
 ## 6. Bootstrap Authentication & Credentials
 - Default admin credentials: `admin` / `admin` (configurable via `BOOTSTRAP_ADMIN_USER` and `BOOTSTRAP_ADMIN_PASSWORD`).
@@ -46,3 +47,7 @@ Only active, relevant files remain in the root directory:
 - `venuity.jar`: Standalone single-JAR executable.
 - `PROJECT_BRIEF.MD`, `README.md`, `package.json`, `.gitignore`: Root project metadata and configs.
 - `legacy/`: Preserved archive of all deprecated/legacy directories and files (`backend/`, `frontend/`, `frontend_old/`, `src-tauri/`, `legacy_assets/`, `downloads/`, and legacy config files) preserving their exact file structure; completely excluded from git tracking via `.gitignore`.
+
+## 8. User Management UI & API
+- **API:** Dedicated ADMIN-only endpoints `POST /api/users` (create user) and `GET /api/users` (list users).
+- **Settings UI:** The Settings page includes an "Add user" button in the page header and an interactive "User accounts" sidebar card. Clicking either button opens a glassmorphism popup modal where administrators can create new Staff or Admin accounts with username, password, role (`STAFF` or `ADMIN`), and optional profile details.

@@ -309,4 +309,15 @@ export const api = {
   analyticsHourly(from, to) {
     return request(`/api/analytics/hourly?${rangeQuery(from, to)}`);
   },
+
+  users() {
+    return request('/api/users');
+  },
+
+  createUser(data) {
+    return request('/api/users', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
 };
