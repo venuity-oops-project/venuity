@@ -1,0 +1,20 @@
+# Caddyfile for Venuity Reverse Proxy with Automatic HTTPS
+# Replace YOUR_SUBDOMAIN.duckdns.org with your actual DuckDNS domain or custom domain.
+
+YOUR_SUBDOMAIN.duckdns.org {
+    reverse_proxy localhost:8080 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+
+    # Security headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(self)"
+    }
+}

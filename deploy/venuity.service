@@ -1,0 +1,24 @@
+[Unit]
+Description=Venuity PlayArea Manager (Java 25 Single-JAR)
+After=network.target remote-fs.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=venuity
+Group=venuity
+WorkingDirectory=/opt/venuity
+EnvironmentFile=/etc/venuity/venuity.env
+ExecStart=/usr/bin/java -jar /opt/venuity/venuity.jar
+Restart=always
+RestartSec=10s
+TimeoutStopSec=35s
+
+# Security sandboxing
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
