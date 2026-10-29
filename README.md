@@ -39,6 +39,18 @@ java -jar java/venuity-server/target/venuity.jar
 
 Detailed architecture and development guides are available in [`java/README.md`](java/README.md) and [`PROJECT_BRIEF.MD`](PROJECT_BRIEF.MD).
 
+---
+
+## ☁️ Deploying to the Cloud
+
+Venuity is ready for free-tier cloud deployment using a multi-stage Docker container or standalone single-JAR:
+
+- **Free Managed MySQL:** Works seamlessly with Aiven Free MySQL 8.4 (automatic SSL required, port mapping, `defaultdb` support).
+- **Free Container Hosting:** Deploy to Render as a Docker Web Service using the provided [`render.yaml`](render.yaml) blueprint or Dockerfile.
+- **Oracle Cloud Always Free VM:** Deploy with `systemd` and automatic HTTPS via Caddy reverse proxy using templates in [`deploy/`](deploy/).
+
+👉 **Complete Step-by-Step Guide:** See [**`docs/DEPLOYMENT.md`**](docs/DEPLOYMENT.md) for full instructions, environment variable tables, migration guide, and backup procedures.
+
 > [!WARNING]
 > This project is under **active development**. The deployed website may not always reflect the latest code in this repository. For the most accurate and up-to-date implementation, please refer to the source code here rather than the live demo.
 

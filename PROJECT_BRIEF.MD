@@ -58,3 +58,11 @@ Only active, relevant files remain in the root directory:
 - **Traffic Modeling:** Weekend volume spikes (35-60 daily visits), summer vacation bump (May-June), holiday peaks (Republic Day, Independence Day, Dussehra/Diwali season), and diurnal peak curves (11:00-13:00 morning and 16:00-20:00 evening rush hours).
 - **Generator Script:** `java/venuity-server/src/main/resources/db/seed_analytics_dummy_data.py`.
 - **Analytics Visuals:** Fully populates Daily, Hourly, Weekly, and Monthly charts across Check-ins and Revenue in both modern and legacy analytics dashboards.
+
+## 10. Free Cloud Hosting & Production Readiness
+- **Managed MySQL with SSL:** Configured for cloud databases requiring SSL (e.g. Aiven Free MySQL with `DB_SSL_MODE=REQUIRED` by default in prod), dynamic port assignment, and non-default database names (e.g., `defaultdb`). Full `SPRING_DATASOURCE_URL` override supported.
+- **Platform Port & Reverse Proxy:** Binds to `${PORT:${SERVER_PORT:8080}}`, with `server.forward-headers-strategy=framework` for TLS-terminating proxies and graceful shutdown (`server.shutdown=graceful`).
+- **Security & Permissions Policy:** Enforces `Permissions-Policy: camera=(self)` to permit same-origin camera scanning over HTTPS while protecting the origin. Swagger UI / OpenAPI endpoints disabled by default in `prod`.
+- **Production Safety Validator:** Startup validator active in `prod` profile that fails fast if `JWT_SECRET` is missing, shorter than 32 bytes, or matches dev defaults, or if bootstrap admin credentials are weak/missing.
+- **Multi-Stage Container & Low-Memory Tuning:** Root `Dockerfile` using Temurin 25 JDK (build) and JRE (runtime) running as non-root user `venuity` (UID 10001). Low-memory settings (`-XX:MaxRAMPercentage=70 -XX:+ExitOnOutOfMemoryError`, `DB_POOL_SIZE=5`, `spring.jpa.open-in-view=false`) tailored for 512 MB free tier hosts.
+- **Deployment Blueprints & Documentation:** Complete guide in `docs/DEPLOYMENT.md`, Render blueprint in `render.yaml`, systemd unit and Caddyfile in `deploy/`, and smoke testing script in `deploy/smoke-test.sh`.
