@@ -88,3 +88,7 @@ target/
 legacy/
 
 seed_data.sql
+
+*.env
+.env*
+!*.env.example
