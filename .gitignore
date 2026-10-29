@@ -86,3 +86,5 @@ target/
 
 # Archived legacy codebase
 legacy/
+
+seed_data.sql

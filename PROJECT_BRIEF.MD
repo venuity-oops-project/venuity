@@ -51,3 +51,10 @@ Only active, relevant files remain in the root directory:
 ## 8. User Management UI & API
 - **API:** Dedicated ADMIN-only endpoints `POST /api/users` (create user) and `GET /api/users` (list users).
 - **Settings UI:** The Settings page includes an "Add user" button in the page header and an interactive "User accounts" sidebar card. Clicking either button opens a glassmorphism popup modal where administrators can create new Staff or Admin accounts with username, password, role (`STAFF` or `ADMIN`), and optional profile details.
+
+## 9. Seed & Analytics Demonstration Data
+- **Timeframe:** January 1, 2026 to October 30, 2026 (~303 days).
+- **Dataset:** 50 realistic customer accounts with unique UUIDs, phone numbers, and join dates; 8,843 wallet ledger transactions (`TOPUP` and `CHECKIN`); 7,982 verified check-in entries linked to transactions.
+- **Traffic Modeling:** Weekend volume spikes (35-60 daily visits), summer vacation bump (May-June), holiday peaks (Republic Day, Independence Day, Dussehra/Diwali season), and diurnal peak curves (11:00-13:00 morning and 16:00-20:00 evening rush hours).
+- **Generator Script:** `java/venuity-server/src/main/resources/db/seed_analytics_dummy_data.py`.
+- **Analytics Visuals:** Fully populates Daily, Hourly, Weekly, and Monthly charts across Check-ins and Revenue in both modern and legacy analytics dashboards.
