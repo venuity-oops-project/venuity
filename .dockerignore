@@ -1,0 +1,16 @@
+.git
+.github
+**/target
+**/node_modules
+backend
+frontend
+frontend_old
+legacy_assets
+src-tauri
+legacy
+java/.env
+*.env
+*.sqlite
+*.sqlite3
+*.db
+seed_data.sql

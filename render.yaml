@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: venuity
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_SSL_MODE
+        value: REQUIRED
+      - key: DB_POOL_SIZE
+        value: "5"
+      - key: JWT_SECRET
+        sync: false
+      - key: BOOTSTRAP_ADMIN_USER
+        value: admin
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
+      - key: SPRINGDOC_API_DOCS_ENABLED
+        value: "false"
+      - key: SPRINGDOC_SWAGGER_UI_ENABLED
+        value: "false"
