@@ -2,7 +2,7 @@ spring:
   application:
     name: venuity-server
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:venuity}?connectionTimeZone=UTC&useUnicode=true&characterEncoding=utf8
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:venuity}?connectionTimeZone=UTC&useUnicode=true&characterEncoding=utf8&sslMode=${DB_SSL_MODE:PREFERRED}
     username: ${DB_USER:venuity}
     password: ${DB_PASSWORD:venuity}
     hikari:
@@ -21,7 +21,7 @@ spring:
     locations: classpath:db/migration
 
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${PORT:${SERVER_PORT:8080}}
   tomcat:
     max-http-form-post-size: 1MB
 
@@ -46,5 +46,7 @@ management:
 springdoc:
   api-docs:
     path: /v3/api-docs
+    enabled: ${SPRINGDOC_API_DOCS_ENABLED:true}
   swagger-ui:
     path: /swagger-ui.html
+    enabled: ${SPRINGDOC_SWAGGER_UI_ENABLED:true}

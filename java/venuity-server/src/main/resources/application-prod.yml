@@ -1,9 +1,33 @@
 server:
+  port: ${PORT:${SERVER_PORT:8080}}
+  forward-headers-strategy: framework
   shutdown: graceful
 
 spring:
   lifecycle:
     timeout-per-shutdown-phase: 30s
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:venuity}?connectionTimeZone=UTC&useUnicode=true&characterEncoding=utf8&sslMode=${DB_SSL_MODE:REQUIRED}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:5}
+      connection-timeout: 10000
+  jpa:
+    open-in-view: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+springdoc:
+  api-docs:
+    enabled: ${SPRINGDOC_API_DOCS_ENABLED:false}
+  swagger-ui:
+    enabled: ${SPRINGDOC_SWAGGER_UI_ENABLED:false}
 
 logging:
   level:
