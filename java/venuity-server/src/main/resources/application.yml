@@ -31,8 +31,8 @@ venuity:
     access-minutes: ${JWT_ACCESS_MINUTES:480}
     refresh-days: ${JWT_REFRESH_DAYS:7}
   bootstrap:
-    admin-username: ${BOOTSTRAP_ADMIN_USER:}
-    admin-password: ${BOOTSTRAP_ADMIN_PASSWORD:}
+    admin-username: ${BOOTSTRAP_ADMIN_USER:admin}
+    admin-password: ${BOOTSTRAP_ADMIN_PASSWORD:admin}
 
 management:
   endpoints:

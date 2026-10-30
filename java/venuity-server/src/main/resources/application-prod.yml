@@ -33,3 +33,8 @@ logging:
   level:
     root: INFO
     com.venuity: INFO
+
+venuity:
+  bootstrap:
+    admin-username: ${BOOTSTRAP_ADMIN_USER:}
+    admin-password: ${BOOTSTRAP_ADMIN_PASSWORD:}

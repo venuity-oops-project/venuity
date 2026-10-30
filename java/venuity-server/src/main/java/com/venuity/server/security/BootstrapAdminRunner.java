@@ -3,14 +3,20 @@ package com.venuity.server.security;
 import com.venuity.server.domain.AppUser;
 import com.venuity.server.domain.Role;
 import com.venuity.server.repo.AppUserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
+@Order(100)
 public class BootstrapAdminRunner implements ApplicationRunner {
+
+    private static final Logger log = LoggerFactory.getLogger(BootstrapAdminRunner.class);
 
     private final AppUserRepository users;
     private final PasswordService passwords;
@@ -30,6 +36,7 @@ public class BootstrapAdminRunner implements ApplicationRunner {
     @Transactional
     public void run(ApplicationArguments args) {
         if (username.isBlank() || password.isBlank()) {
+            log.info("[BootstrapAdmin] No bootstrap admin credentials specified; skipping admin bootstrap.");
             return;
         }
         var existing = users.findByUsername(username);
@@ -50,9 +57,13 @@ public class BootstrapAdminRunner implements ApplicationRunner {
             }
             if (changed) {
                 users.save(user);
+                log.info("[BootstrapAdmin] Updated existing admin user credentials for '{}'.", username);
+            } else {
+                log.info("[BootstrapAdmin] Admin user '{}' already up to date.", username);
             }
             return;
         }
         users.save(AppUser.create(username, passwords.encode(password), Role.ADMIN));
+        log.info("[BootstrapAdmin] Successfully created bootstrap admin user '{}'.", username);
     }
 }
