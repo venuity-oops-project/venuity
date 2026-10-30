@@ -42,4 +42,12 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
 
     @Query("select coalesce(sum(t.amount), 0) from WalletTransaction t where t.customer.id = :customerId")
     BigDecimal sumByCustomerId(@Param("customerId") long customerId);
+
+    @Query("select count(t) from WalletTransaction t where t.createdBy.id = :userId and t.type = :type")
+    long countByUserIdAndType(@Param("userId") long userId, @Param("type") TxType type);
+
+    @Query("select coalesce(sum(t.amount), 0) from WalletTransaction t where t.createdBy.id = :userId and t.type = :type")
+    BigDecimal sumByUserIdAndType(@Param("userId") long userId, @Param("type") TxType type);
+
+    List<WalletTransaction> findTop20ByCreatedByIdOrderByCreatedAtDesc(long userId);
 }
