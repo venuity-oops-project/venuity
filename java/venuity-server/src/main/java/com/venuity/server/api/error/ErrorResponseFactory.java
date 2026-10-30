@@ -65,7 +65,7 @@ public class ErrorResponseFactory {
             case INVALID_QR -> exception.getMessage();
             case INSUFFICIENT_BALANCE -> exception.getMessage();
             case AMOUNT_OUT_OF_RANGE -> "Validation failed.";
-            case IDEMPOTENCY_CONFLICT -> exception.getMessage();
+            case IDEMPOTENCY_CONFLICT, CONFLICT, LAST_ADMIN, ACCOUNT_LOCKED, PASSWORD_POLICY, PASSWORD_CHANGE_REQUIRED -> exception.getMessage();
             case INTERNAL_ERROR -> "An internal server error occurred.";
         };
     }

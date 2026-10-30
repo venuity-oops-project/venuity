@@ -33,6 +33,7 @@ venuity:
   bootstrap:
     admin-username: ${BOOTSTRAP_ADMIN_USER:admin}
     admin-password: ${BOOTSTRAP_ADMIN_PASSWORD:admin}
+    force-reset: ${BOOTSTRAP_ADMIN_FORCE_RESET:true}
 
 management:
   endpoints:

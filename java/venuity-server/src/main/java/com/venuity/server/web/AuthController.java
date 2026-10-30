@@ -5,6 +5,7 @@ import com.venuity.server.api.dto.LoginResponse;
 import com.venuity.server.api.dto.RefreshRequest;
 import com.venuity.server.api.dto.TokenPairResponse;
 import com.venuity.server.api.dto.UserResponse;
+import com.venuity.server.security.AuthPrincipal;
 import com.venuity.server.security.SecurityUtils;
 import com.venuity.server.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,8 +29,9 @@ public class AuthController {
 
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest servletRequest) {
-        AuthService.LoginResult result = auth.login(request.username(), request.password(),
-                servletRequest.getRemoteAddr());
+        String ip = servletRequest.getRemoteAddr();
+        String userAgent = servletRequest.getHeader("User-Agent");
+        AuthService.LoginResult result = auth.login(request.username(), request.password(), ip, userAgent);
         return new LoginResponse(result.tokens().access(), result.tokens().refresh(),
                 result.tokens().accessExpiresAt(), auth.modernUser(result.user()));
     }
@@ -40,14 +42,23 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public TokenPairResponse refresh(@Valid @RequestBody RefreshRequest request) {
-        var pair = auth.refresh(request.refresh());
+    public TokenPairResponse refresh(@Valid @RequestBody RefreshRequest request, HttpServletRequest servletRequest) {
+        String ip = servletRequest.getRemoteAddr();
+        String userAgent = servletRequest.getHeader("User-Agent");
+        var pair = auth.refresh(request.refresh(), ip, userAgent);
         return new TokenPairResponse(pair.access(), pair.refresh());
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@Valid @RequestBody RefreshRequest request) {
-        auth.blacklist(request.refresh());
+    public ResponseEntity<Void> logout(@Valid @RequestBody RefreshRequest request, HttpServletRequest servletRequest) {
+        AuthPrincipal principal = null;
+        try {
+            principal = SecurityUtils.principal();
+        } catch (Exception ignored) {
+        }
+        Long userId = principal != null ? principal.id() : null;
+        String username = principal != null ? principal.username() : null;
+        auth.logout(request.refresh(), userId, username, servletRequest.getRemoteAddr());
         return ResponseEntity.noContent().build();
     }
 }

@@ -3,6 +3,7 @@ package com.venuity.server.security;
 import com.venuity.server.domain.AppUser;
 import com.venuity.server.domain.Role;
 import com.venuity.server.repo.AppUserRepository;
+import com.venuity.server.service.AuditService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,16 +21,22 @@ public class BootstrapAdminRunner implements ApplicationRunner {
 
     private final AppUserRepository users;
     private final PasswordService passwords;
+    private final AuditService auditService;
     private final String username;
     private final String password;
+    private final boolean forceReset;
 
     public BootstrapAdminRunner(AppUserRepository users, PasswordService passwords,
+                                AuditService auditService,
                                 @Value("${venuity.bootstrap.admin-username:}") String username,
-                                @Value("${venuity.bootstrap.admin-password:}") String password) {
+                                @Value("${venuity.bootstrap.admin-password:}") String password,
+                                @Value("${venuity.bootstrap.force-reset:false}") boolean forceReset) {
         this.users = users;
         this.passwords = passwords;
+        this.auditService = auditService;
         this.username = username;
         this.password = password;
+        this.forceReset = forceReset;
     }
 
     @Override
@@ -39,31 +46,34 @@ public class BootstrapAdminRunner implements ApplicationRunner {
             log.info("[BootstrapAdmin] No bootstrap admin credentials specified; skipping admin bootstrap.");
             return;
         }
-        var existing = users.findByUsername(username);
+        var existing = users.findByUsernameIgnoreCase(username);
         if (existing.isPresent()) {
             AppUser user = existing.get();
-            boolean changed = false;
-            if (!passwords.matches(password, user.getPasswordHash())) {
-                user.setPasswordHash(passwords.encode(password));
-                changed = true;
+            if (!forceReset) {
+                log.info("[BootstrapAdmin] Admin user '{}' already exists and BOOTSTRAP_ADMIN_FORCE_RESET is false. Keeping existing credentials.", username);
+                return;
             }
-            if (!user.isEnabled()) {
-                user.setEnabled(true);
-                changed = true;
-            }
-            if (user.getRole() != Role.ADMIN) {
-                user.setRole(Role.ADMIN);
-                changed = true;
-            }
-            if (changed) {
-                users.save(user);
-                log.info("[BootstrapAdmin] Updated existing admin user credentials for '{}'.", username);
-            } else {
-                log.info("[BootstrapAdmin] Admin user '{}' already up to date.", username);
-            }
+            log.warn("[BootstrapAdmin] BOOTSTRAP_ADMIN_FORCE_RESET is true. Overwriting credentials and role for existing admin '{}'.", username);
+            user.setPasswordHash(passwords.encode(password));
+            user.setEnabled(true);
+            user.setRole(Role.ADMIN);
+            user.setLockedUntil(null);
+            user.setAccountExpiresAt(null);
+            user.setDeletedAt(null);
+            user.setFailedLoginAttempts(0);
+            user.bumpTokenVersion();
+            users.save(user);
+            auditService.record(null, "BOOTSTRAP", "BOOTSTRAP_RESET", user.getId(), user.getUsername(),
+                    "127.0.0.1", "{\"reason\":\"BOOTSTRAP_ADMIN_FORCE_RESET triggered\"}", true);
+            log.info("[BootstrapAdmin] Reset credentials for existing admin user '{}'.", username);
             return;
         }
-        users.save(AppUser.create(username, passwords.encode(password), Role.ADMIN));
+
+        AppUser newUser = AppUser.create(username, passwords.encode(password), Role.ADMIN);
+        newUser.setFullName("Administrator");
+        users.save(newUser);
+        auditService.record(null, "BOOTSTRAP", "BOOTSTRAP_CREATE", newUser.getId(), newUser.getUsername(),
+                "127.0.0.1", "{\"reason\":\"Initial bootstrap admin created\"}", true);
         log.info("[BootstrapAdmin] Successfully created bootstrap admin user '{}'.", username);
     }
 }

@@ -41,6 +41,7 @@ public class SecurityConfig {
                                 "/api/health", "/actuator/health", "/actuator/info",
                                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/error")
                         .permitAll()
+                        .requestMatchers("/api/users/**", "/api/audit-log/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(entryPoint)

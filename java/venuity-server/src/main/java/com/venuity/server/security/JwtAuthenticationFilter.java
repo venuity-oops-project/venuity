@@ -49,8 +49,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             AppUser user = users.findById(userId)
                     .filter(AppUser::isEnabled)
                     .orElseThrow(() -> new BadCredentialsException("Unknown or disabled user"));
+
+            if (user.isArchived() || user.isLocked() || user.isExpired()) {
+                throw new BadCredentialsException("User account is inactive, locked, or expired");
+            }
+            Integer ver = claims.get("ver", Integer.class);
+            if (ver != null && ver != user.getTokenVersion()) {
+                throw new BadCredentialsException("Token has been revoked");
+            }
+
+            if (user.isMustChangePassword()) {
+                String uri = request.getRequestURI();
+                boolean allowed = uri.equals("/api/auth/me")
+                        || uri.equals("/api/me")
+                        || uri.equals("/api/me/change-password")
+                        || uri.equals("/api/auth/logout")
+                        || uri.startsWith("/api/settings/branding");
+                if (!allowed) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"code\":\"PASSWORD_CHANGE_REQUIRED\",\"message\":\"Password change required before accessing other resources.\"}");
+                    return;
+                }
+            }
+
             AuthPrincipal principal = new AuthPrincipal(user.getId(), user.getPublicId(),
-                    user.getUsername(), user.getRole());
+                    user.getUsername(), user.getRole(), user.isMustChangePassword());
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                     principal, null, List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())));
             SecurityContextHolder.getContext().setAuthentication(authentication);

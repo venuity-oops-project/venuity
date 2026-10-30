@@ -38,3 +38,4 @@ venuity:
   bootstrap:
     admin-username: ${BOOTSTRAP_ADMIN_USER:}
     admin-password: ${BOOTSTRAP_ADMIN_PASSWORD:}
+    force-reset: ${BOOTSTRAP_ADMIN_FORCE_RESET:false}
