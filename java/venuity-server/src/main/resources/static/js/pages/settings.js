@@ -1,17 +1,15 @@
-/**
- * Settings page: business configuration, fee, currency and branding controls.
- */
-
 import { api } from '../api.js';
-import { state, updateSettings as applySettings } from '../store.js';
 import {
+  state,
+  updateSettings as applySettings,
+} from '../store.js';
+import {
+  busyButton,
   escapeHtml,
   icon,
   pageHeader,
   qs,
-  qsa,
   toast,
-  busyButton,
 } from '../ui.js';
 
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;
@@ -21,7 +19,7 @@ export function mount(root) {
   const initial = state.settings;
 
   root.innerHTML = `
-    ${pageHeader('Settings', 'Configure your business, branding, currency and check-in fees.')}
+    ${pageHeader('Settings', 'Configure your business, branding and check-in fee.')}
     ${isAdmin ? '' : `
       <div class="admin-notice">
         ${icon('bx-lock-alt')}
@@ -51,64 +49,69 @@ export function mount(root) {
           </div>
         </div>
 
+        <hr style="border:none;border-top:1px solid var(--glass-border);margin:24px 0">
+
+        <h3 class="settings-section-title">${icon('bx-palette')} Branding &amp; white-label</h3>
+
         <div class="form-group">
-          <label for="settings-app-title">Browser title</label>
-          <input class="form-input" id="settings-app-title" maxlength="150" required
+          <label for="settings-app-title">Application title</label>
+          <input class="form-input" id="settings-app-title" maxlength="150"
                  value="${escapeHtml(initial.appTitle)}" ${isAdmin ? '' : 'disabled'}>
           <small class="muted" style="display:block;margin-top:6px">Shown on the login screen and browser tab.</small>
         </div>
 
-        <h3 class="settings-section-title" style="margin-top:28px">${icon('bx-palette')} Branding &amp; appearance</h3>
-
         <div class="form-group">
-          <label for="settings-logo">Logo URL or path</label>
-          <input class="form-input" id="settings-logo" maxlength="255" required
+          <label for="settings-logo">Logo URL</label>
+          <input class="form-input" id="settings-logo" maxlength="255"
                  value="${escapeHtml(initial.logoUrl)}" ${isAdmin ? '' : 'disabled'}>
-          <small class="muted" style="display:block;margin-top:6px">Relative path (/logo.png) or full https:// URL.</small>
         </div>
 
         <div class="form-grid">
           <div class="form-group">
-            <label for="settings-primary-text">Primary colour</label>
-            <div class="color-picker-input">
-              <input type="color" class="color-swatch-picker" id="settings-primary-picker"
-                     value="${escapeHtml(initial.primaryColor)}" ${isAdmin ? '' : 'disabled'}>
-              <input class="form-input" id="settings-primary-text" maxlength="7" required
-                     value="${escapeHtml(initial.primaryColor)}" ${isAdmin ? '' : 'disabled'}>
+            <label for="settings-primary-text">Primary color</label>
+            <div style="display:flex;align-items:center;gap:12px">
+              <input type="color" id="settings-primary-picker" value="${escapeHtml(initial.primaryColor)}"
+                     style="width:48px;height:48px;padding:2px;border:2px solid var(--glass-border);border-radius:10px;cursor:pointer;background:transparent"
+                     ${isAdmin ? '' : 'disabled'} aria-label="Primary color picker">
+              <input class="form-input" id="settings-primary-text" maxlength="7" value="${escapeHtml(initial.primaryColor)}"
+                     style="font-family:monospace" ${isAdmin ? '' : 'disabled'} aria-label="Primary color hex">
             </div>
           </div>
           <div class="form-group">
-            <label for="settings-hover-text">Hover colour</label>
-            <div class="color-picker-input">
-              <input type="color" class="color-swatch-picker" id="settings-hover-picker"
-                     value="${escapeHtml(initial.primaryHoverColor)}" ${isAdmin ? '' : 'disabled'}>
-              <input class="form-input" id="settings-hover-text" maxlength="7" required
-                     value="${escapeHtml(initial.primaryHoverColor)}" ${isAdmin ? '' : 'disabled'}>
+            <label for="settings-hover-text">Hover color</label>
+            <div style="display:flex;align-items:center;gap:12px">
+              <input type="color" id="settings-hover-picker" value="${escapeHtml(initial.primaryHoverColor)}"
+                     style="width:48px;height:48px;padding:2px;border:2px solid var(--glass-border);border-radius:10px;cursor:pointer;background:transparent"
+                     ${isAdmin ? '' : 'disabled'} aria-label="Hover color picker">
+              <input class="form-input" id="settings-hover-text" maxlength="7" value="${escapeHtml(initial.primaryHoverColor)}"
+                     style="font-family:monospace" ${isAdmin ? '' : 'disabled'} aria-label="Hover color hex">
             </div>
           </div>
         </div>
 
-        <div class="settings-actions">
-          <button type="submit" class="btn btn-primary" id="settings-save" ${isAdmin ? '' : 'disabled'}>
-            ${icon('bx-save')} Save changes
-          </button>
-          <button type="button" class="btn btn-secondary" id="settings-reset" ${isAdmin ? '' : 'disabled'}>
-            Reset
+        <div class="form-group">
+          <div class="preview-label" style="margin-bottom:8px">Gradient preview</div>
+          <div id="settings-gradient" style="height:42px;border-radius:10px"></div>
+        </div>
+
+        <div style="margin-top:26px">
+          <button type="submit" class="btn btn-primary" id="settings-save"
+                  style="width:100%;justify-content:center" ${isAdmin ? '' : 'disabled'}>
+            ${icon('bx-save')} Save settings
           </button>
         </div>
       </form>
 
       <aside class="settings-preview">
+        <div class="preview-banner" id="preview-banner">
+          <img class="preview-logo" id="preview-logo" alt="Business logo">
+          <div class="preview-name" id="preview-name"></div>
+          <div class="preview-app" id="preview-app"></div>
+        </div>
         <div class="glass-card" style="padding:18px">
-          <div class="preview-label">Live appearance preview</div>
-          <div class="preview-banner" id="preview-banner">
-            <img class="preview-banner-logo" id="preview-logo" src="${escapeHtml(initial.logoUrl)}" alt="Logo">
-            <div>
-              <div style="font-weight:700;font-size:15px" id="preview-title">${escapeHtml(initial.appTitle)}</div>
-              <div class="muted" style="font-size:12px" id="preview-business">${escapeHtml(initial.businessName)}</div>
-            </div>
-          </div>
-          <div class="preview-btn-mock" id="preview-btn">Primary button sample</div>
+          <div class="preview-label">Primary color</div>
+          <div class="preview-swatch" id="preview-primary"></div>
+          <div class="preview-label">Hover color</div>
           <div class="preview-swatch" id="preview-hover"></div>
           <p class="muted" style="font-size:12px;line-height:1.5;margin:12px 0 0">
             Changes preview live. Save to apply them for everyone.
@@ -135,69 +138,107 @@ export function mount(root) {
   const primaryPicker = qs('#settings-primary-picker', root);
   const hoverText = qs('#settings-hover-text', root);
   const hoverPicker = qs('#settings-hover-picker', root);
+  const gradient = qs('#settings-gradient', root);
   const saveButton = qs('#settings-save', root);
 
   const banner = qs('#preview-banner', root);
   const previewLogo = qs('#preview-logo', root);
-  const previewTitle = qs('#preview-title', root);
-  const previewBusiness = qs('#preview-business', root);
-  const previewBtn = qs('#preview-btn', root);
+  const previewName = qs('#preview-name', root);
+  const previewApp = qs('#preview-app', root);
+  const previewPrimary = qs('#preview-primary', root);
   const previewHover = qs('#preview-hover', root);
   const previewFee = qs('#preview-fee', root);
 
   let dirty = false;
 
+  function safeColor(value, fallback) {
+    const text = String(value || '').trim();
+    return HEX_COLOR.test(text) ? text : fallback;
+  }
+
+  function updateGradient() {
+    const primary = safeColor(primaryText.value, '#6366f1');
+    const hover = safeColor(hoverText.value, '#4f46e5');
+    const background = `linear-gradient(135deg, ${primary}, ${hover})`;
+    gradient.style.background = background;
+    banner.style.background = background;
+    previewPrimary.style.background = primary;
+    previewHover.style.background = hover;
+  }
+
   function updatePreview() {
-    const pColor = primaryText.value.trim();
-    const hColor = hoverText.value.trim();
-    const feeVal = parseFloat(fee.value) || 0;
-    const curVal = currency.value.trim() || 'â‚¹';
+    const name = businessName.value.trim() || 'Your business';
+    const title = appTitle.value.trim() || name;
+    previewName.textContent = name;
+    previewApp.textContent = title;
 
-    previewTitle.textContent = appTitle.value.trim() || 'Venuity';
-    previewBusiness.textContent = businessName.value.trim() || 'PlayArea Manager';
-    previewFee.textContent = `${curVal} ${feeVal.toFixed(2)}`;
+    const symbol = currency.value.trim();
+    const amount = Number(fee.value);
+    previewFee.textContent =
+      Number.isFinite(amount) && amount >= 0
+        ? `${symbol}${amount.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}`
+        : 'GÇö';
 
-    if (HEX_COLOR.test(pColor)) {
-      previewBtn.style.background = pColor;
-      banner.style.borderColor = pColor;
-    }
-    if (HEX_COLOR.test(hColor)) {
-      previewHover.style.background = hColor;
-    }
-    if (logo.value.trim()) {
-      previewLogo.src = logo.value.trim();
-      previewLogo.style.display = '';
-    } else {
-      previewLogo.style.display = 'none';
-    }
+    const source = logo.value.trim() || '/logo.png';
+    previewLogo.style.display = '';
+    previewLogo.src = source;
+    updateGradient();
   }
 
-  function syncColors(source, target) {
-    if (HEX_COLOR.test(source.value)) {
-      target.value = source.value;
+  function populate(settings) {
+    businessName.value = settings.businessName || '';
+    fee.value = settings.checkinFee === undefined || settings.checkinFee === null ? '' : String(settings.checkinFee);
+    currency.value = settings.currencySymbol || '';
+    appTitle.value = settings.appTitle || '';
+    logo.value = settings.logoUrl || '/logo.png';
+
+    const primary = safeColor(settings.primaryColor, '#6366f1');
+    const hover = safeColor(settings.primaryHoverColor, '#4f46e5');
+    primaryText.value = primary;
+    primaryPicker.value = primary;
+    hoverText.value = hover;
+    hoverPicker.value = hover;
+
+    dirty = false;
+    updatePreview();
+  }
+
+  populate(initial);
+
+  previewLogo.addEventListener('error', () => {
+    previewLogo.style.display = 'none';
+  });
+
+  function bindColor(textInput, picker, otherInput) {
+    picker.addEventListener('input', () => {
+      textInput.value = picker.value;
+      dirty = true;
       updatePreview();
-    }
+    });
+    textInput.addEventListener('input', () => {
+      dirty = true;
+      const value = textInput.value.trim();
+      if (HEX_COLOR.test(value)) {
+        picker.value = value;
+        updatePreview();
+      } else if (value === '') {
+        updatePreview();
+      }
+    });
+    textInput.addEventListener('blur', () => {
+      const fallback = otherInput === primaryText ? '#6366f1' : '#4f46e5';
+      if (!HEX_COLOR.test(textInput.value.trim())) {
+        textInput.value = safeColor(picker.value, fallback);
+        updatePreview();
+      }
+    });
   }
 
-  primaryPicker.addEventListener('input', () => {
-    primaryText.value = primaryPicker.value;
-    dirty = true;
-    updatePreview();
-  });
-  primaryText.addEventListener('input', () => {
-    dirty = true;
-    syncColors(primaryText, primaryPicker);
-  });
-
-  hoverPicker.addEventListener('input', () => {
-    hoverText.value = hoverPicker.value;
-    dirty = true;
-    updatePreview();
-  });
-  hoverText.addEventListener('input', () => {
-    dirty = true;
-    syncColors(hoverText, hoverPicker);
-  });
+  bindColor(primaryText, primaryPicker, hoverText);
+  bindColor(hoverText, hoverPicker, primaryText);
 
   [businessName, fee, currency, appTitle, logo].forEach((input) => {
     input.addEventListener('input', () => {
@@ -206,56 +247,39 @@ export function mount(root) {
     });
   });
 
-  previewLogo.addEventListener('error', () => {
-    previewLogo.style.display = 'none';
-  });
-
-  function populate(data) {
-    businessName.value = data.businessName || '';
-    fee.value = data.checkinFee !== undefined ? data.checkinFee : '';
-    currency.value = data.currencySymbol || '';
-    appTitle.value = data.appTitle || '';
-    logo.value = data.logoUrl || '';
-    primaryText.value = data.primaryColor || '#6366f1';
-    primaryPicker.value = HEX_COLOR.test(primaryText.value) ? primaryText.value : '#6366f1';
-    hoverText.value = data.primaryHoverColor || '#4f46e5';
-    hoverPicker.value = HEX_COLOR.test(hoverText.value) ? hoverText.value : '#4f46e5';
-    updatePreview();
-  }
-
-  qs('#settings-reset', root).addEventListener('click', () => {
-    dirty = false;
-    populate(state.settings);
-  });
-
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (!isAdmin) return;
 
-    const pColor = primaryText.value.trim();
-    const hColor = hoverText.value.trim();
+    const payload = {
+      businessName: businessName.value.trim(),
+      checkinFee: fee.value.trim(),
+      currencySymbol: currency.value.trim(),
+      primaryColor: primaryText.value.trim(),
+      primaryHoverColor: hoverText.value.trim(),
+      appTitle: appTitle.value.trim() || businessName.value.trim(),
+      logoUrl: logo.value.trim() || '/logo.png',
+    };
 
-    if (!HEX_COLOR.test(pColor) || !HEX_COLOR.test(hColor)) {
-      toast('Colour values must be valid 6-character hex codes (e.g. #6366f1)', 'error');
+    if (!payload.businessName || !payload.currencySymbol) {
+      toast('Business name and currency symbol are required.', 'error');
+      return;
+    }
+    if (!Number.isFinite(Number(payload.checkinFee)) || Number(payload.checkinFee) < 0) {
+      toast('Enter a valid check-in fee.', 'error');
+      return;
+    }
+    if (!HEX_COLOR.test(payload.primaryColor) || !HEX_COLOR.test(payload.primaryHoverColor)) {
+      toast('Colors must be six-digit hex values, for example #6366f1.', 'error');
       return;
     }
 
-    const payload = {
-      businessName: businessName.value.trim(),
-      currencySymbol: currency.value.trim(),
-      checkinFee: parseFloat(fee.value) || 0,
-      primaryColor: pColor,
-      primaryHoverColor: hColor,
-      logoUrl: logo.value.trim(),
-      appTitle: appTitle.value.trim(),
-    };
-
     busyButton(saveButton, true, 'Saving...');
     try {
-      const updated = await api.updateSettings(payload);
-      applySettings(updated);
-      dirty = false;
-      toast('Settings saved successfully', 'success');
+      const response = await api.updateSettings(payload);
+      applySettings(response);
+      populate(response);
+      toast('Settings saved successfully!', 'success');
     } catch (error) {
       toast(error.message, 'error');
     } finally {

@@ -42,7 +42,7 @@ export function mount(root, { addCleanup }) {
 
   root.innerHTML = `
     ${pageHeader(
-      'Users &amp; Access',
+      'Users & Access',
       'Manage staff and administrator accounts, security policies, and audit logs.',
       `
         <div class="header-action-group">
