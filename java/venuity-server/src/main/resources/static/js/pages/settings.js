@@ -3,7 +3,7 @@
  */
 
 import { api } from '../api.js';
-import { state, applySettings } from '../store.js';
+import { state, updateSettings as applySettings } from '../store.js';
 import {
   escapeHtml,
   icon,
