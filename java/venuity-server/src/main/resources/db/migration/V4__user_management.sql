@@ -17,22 +17,22 @@ ALTER TABLE app_user
     ADD COLUMN created_by            BIGINT       NULL DEFAULT NULL,
     ADD COLUMN updated_at            TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3);
 
--- Convert empty strings to NULL for nullable email and backfill full_name & last_login_at
+-- 2. Modify email column to allow NULL, then convert empty strings to NULL and add unique constraint
+ALTER TABLE app_user MODIFY COLUMN email VARCHAR(254) NULL DEFAULT NULL;
 UPDATE app_user SET email = NULL WHERE email = '';
+ALTER TABLE app_user ADD CONSTRAINT uq_app_user_email UNIQUE (email);
+
+-- 3. Backfill full_name & last_login_at from legacy columns
 UPDATE app_user SET full_name = TRIM(CONCAT(first_name, ' ', last_name)) WHERE (first_name != '' OR last_name != '');
 UPDATE app_user SET last_login_at = last_login WHERE last_login IS NOT NULL;
 
--- Allow NULL email and add unique constraint
-ALTER TABLE app_user MODIFY COLUMN email VARCHAR(254) NULL DEFAULT NULL;
-ALTER TABLE app_user ADD CONSTRAINT uq_app_user_email UNIQUE (email);
-
--- Foreign key for creator & status indexes
+-- 4. Foreign key for creator & status indexes
 ALTER TABLE app_user
     ADD CONSTRAINT fk_user_created_by FOREIGN KEY (created_by) REFERENCES app_user(id) ON DELETE SET NULL,
     ADD INDEX idx_app_user_deleted_at (deleted_at),
     ADD INDEX idx_app_user_status (enabled, deleted_at, locked_until);
 
--- 2. Persistent user session table (replaces in-memory JWT blacklist)
+-- 5. Persistent user session table (replaces in-memory JWT blacklist)
 CREATE TABLE user_session (
     id                 BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id            BIGINT       NOT NULL,
@@ -49,7 +49,7 @@ CREATE TABLE user_session (
     INDEX idx_session_expires (expires_at)
 ) ENGINE=InnoDB;
 
--- 3. Append-only audit log table
+-- 6. Append-only audit log table
 CREATE TABLE audit_log (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     occurred_at     TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
