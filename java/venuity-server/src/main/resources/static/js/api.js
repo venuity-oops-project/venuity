@@ -310,8 +310,16 @@ export const api = {
     return request(`/api/analytics/hourly?${rangeQuery(from, to)}`);
   },
 
-  users() {
-    return request('/api/users');
+  users(params = {}) {
+    const q = new URLSearchParams();
+    if (params.query) q.set('query', params.query);
+    if (params.role) q.set('role', params.role);
+    if (params.status) q.set('status', params.status);
+    if (params.page !== undefined) q.set('page', params.page);
+    if (params.size !== undefined) q.set('size', params.size);
+    if (params.sort) q.set('sort', params.sort);
+    if (params.direction) q.set('direction', params.direction);
+    return request(`/api/users?${q.toString()}`);
   },
 
   createUser(data) {
@@ -319,5 +327,141 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data),
     });
+  },
+
+  user(id) {
+    return request(`/api/users/${id}`);
+  },
+
+  updateUser(id, data) {
+    return request(`/api/users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  disableUser(id) {
+    return request(`/api/users/${id}/disable`, { method: 'POST' });
+  },
+
+  enableUser(id) {
+    return request(`/api/users/${id}/enable`, { method: 'POST' });
+  },
+
+  unlockUser(id) {
+    return request(`/api/users/${id}/unlock`, { method: 'POST' });
+  },
+
+  resetPassword(id, data) {
+    return request(`/api/users/${id}/reset-password`, {
+      method: 'POST',
+      body: JSON.stringify(data || {}),
+    });
+  },
+
+  forceLogoutUser(id) {
+    return request(`/api/users/${id}/force-logout`, { method: 'POST' });
+  },
+
+  archiveUser(id) {
+    return request(`/api/users/${id}`, { method: 'DELETE' });
+  },
+
+  restoreUser(id) {
+    return request(`/api/users/${id}/restore`, { method: 'POST' });
+  },
+
+  userSessions(id) {
+    return request(`/api/users/${id}/sessions`);
+  },
+
+  revokeUserSession(id, sid) {
+    return request(`/api/users/${id}/sessions/${sid}`, { method: 'DELETE' });
+  },
+
+  userActivity(id) {
+    return request(`/api/users/${id}/activity`);
+  },
+
+  bulkUsers(data) {
+    return request('/api/users/bulk', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async importUsersPreview(file) {
+    const fd = new FormData();
+    fd.append('file', file);
+    const token = getAccessToken();
+    const headers = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch('/api/users/import/preview', {
+      method: 'POST',
+      headers,
+      body: fd,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Import preview failed');
+    }
+    return res.json();
+  },
+
+  async importUsers(file) {
+    const fd = new FormData();
+    fd.append('file', file);
+    const token = getAccessToken();
+    const headers = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch('/api/users/import', {
+      method: 'POST',
+      headers,
+      body: fd,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Import commit failed');
+    }
+    return res.json();
+  },
+
+  auditLogs(params = {}) {
+    const q = new URLSearchParams();
+    if (params.actor) q.set('actor', params.actor);
+    if (params.target) q.set('target', params.target);
+    if (params.action) q.set('action', params.action);
+    if (params.success !== undefined) q.set('success', params.success);
+    if (params.from) q.set('from', params.from);
+    if (params.to) q.set('to', params.to);
+    if (params.page !== undefined) q.set('page', params.page);
+    if (params.size !== undefined) q.set('size', params.size);
+    return request(`/api/audit-log?${q.toString()}`);
+  },
+
+  updateMe(data) {
+    return request('/api/me', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  changePassword(data) {
+    return request('/api/me/change-password', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  mySessions() {
+    return request('/api/me/sessions');
+  },
+
+  revokeMySession(sid) {
+    return request(`/api/me/sessions/${sid}`, { method: 'DELETE' });
+  },
+
+  logoutOthers() {
+    return request('/api/me/logout-others', { method: 'POST' });
   },
 };

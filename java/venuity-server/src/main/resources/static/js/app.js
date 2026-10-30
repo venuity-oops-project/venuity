@@ -13,7 +13,10 @@ import {
   escapeHtml,
   icon,
   qs,
+  qsa,
   toast,
+  openModal,
+  confirmDialog,
 } from './ui.js';
 import { mount as mountDashboard } from './pages/dashboard.js';
 import { mount as mountCustomers } from './pages/customers.js';
@@ -21,6 +24,7 @@ import { mount as mountRecharge } from './pages/recharge.js';
 import { mount as mountCheckin } from './pages/checkin.js';
 import { mount as mountAnalytics } from './pages/analytics.js';
 import { mount as mountSettings } from './pages/settings.js';
+import { mount as mountUsers } from './pages/users.js';
 
 const NAV_ITEMS = [
   { path: '/', icon: 'bx-home', label: 'Home' },
@@ -29,6 +33,7 @@ const NAV_ITEMS = [
   { path: '/recharge', icon: 'bx-wallet', label: 'Recharge' },
   { path: '/scan', icon: 'bx-qr-scan', label: 'Check-in' },
   { path: '/analytics', icon: 'bx-bar-chart-alt-2', label: 'Analytics' },
+  { path: '/users', icon: 'bx-group', label: 'Users', adminOnly: true },
   { path: '/settings', icon: 'bx-cog', label: 'Settings' },
 ];
 
@@ -38,6 +43,7 @@ const HOME_CARDS = [
   { path: '/recharge', cls: 'card-recharge', icon: 'bx-wallet', label: 'Recharge' },
   { path: '/scan', cls: 'card-scan', icon: 'bx-qr-scan', label: 'Check-in' },
   { path: '/analytics', cls: 'card-analytics', icon: 'bx-bar-chart-alt-2', label: 'Analytics' },
+  { path: '/users', cls: 'card-users', icon: 'bx-group', label: 'Users', adminOnly: true },
   { path: '/settings', cls: 'card-settings', icon: 'bx-cog', label: 'Settings' },
 ];
 
@@ -48,6 +54,7 @@ const ROUTES = {
   '/recharge': { title: 'Recharge Balance', mount: mountRecharge },
   '/scan': { title: 'Scanner Check-in', mount: mountCheckin },
   '/analytics': { title: 'Business Statistics', mount: mountAnalytics },
+  '/users': { title: 'User Management', mount: mountUsers, adminOnly: true },
   '/settings': { title: 'Settings', mount: mountSettings },
 };
 
@@ -57,6 +64,7 @@ let shellCleanups = [];
 let healthTimer = null;
 let sidebarCollapsed = localStorage.getItem('desktop_sidebar_state') === 'closed';
 let mobileSidebarOpen = false;
+let forcePasswordModalActive = false;
 
 function isMobile() {
   return window.innerWidth <= 768;
@@ -98,7 +106,6 @@ function stopHealthPolling() {
 
 function teardownShell() {
   stopHealthPolling();
-  destroyPage();
   const cleanups = shellCleanups;
   shellCleanups = [];
   cleanups.forEach((cleanup) => {
@@ -108,65 +115,73 @@ function teardownShell() {
       console.error(error);
     }
   });
-  const shell = appRoot ? appRoot.querySelector('.app-container') : null;
-  if (shell) shell.remove();
-  mobileSidebarOpen = false;
 }
 
 function closeMobileSidebar() {
   if (!mobileSidebarOpen) return;
   mobileSidebarOpen = false;
-  const sidebar = qs('#sidebar');
-  const overlay = qs('#sidebar-overlay');
-  const closeButton = qs('#sidebar-close');
+  const sidebar = qs('#sidebar', appRoot);
+  const overlay = qs('#sidebar-overlay', appRoot);
+  const closeButton = qs('#sidebar-close', appRoot);
   if (sidebar) sidebar.classList.remove('mobile-open');
   if (overlay) overlay.classList.remove('active');
   if (closeButton) closeButton.style.display = 'none';
 }
 
-function setConnection(online) {
-  const pill = qs('#connection-pill');
-  if (!pill) return;
-  pill.classList.toggle('offline', !online);
-  pill.title = online ? 'Server reachable' : 'Server unreachable';
-  const text = qs('#connection-text', pill);
-  if (text) text.textContent = online ? 'Online' : 'Offline';
+function updateActiveNav(path) {
+  qsa('.nav-links a', appRoot).forEach((link) => {
+    const route = link.dataset.route;
+    const active = route === '/' ? path === '/' : path === route || path.startsWith(`${route}/`);
+    link.classList.toggle('active', active);
+  });
 }
 
-async function checkHealth() {
+function updateConnectionPill(online, label) {
+  const pill = qs('#connection-pill', appRoot);
+  const text = qs('#connection-text', appRoot);
+  if (!pill || !text) return;
+
+  pill.classList.remove('online', 'offline', 'checking');
+  pill.classList.add(online ? 'online' : 'offline');
+  text.textContent = label || (online ? 'Online' : 'Offline');
+  pill.title = online ? 'Server reachable' : 'Cannot reach server';
+}
+
+async function pingHealth() {
   try {
-    await api.health();
-    setConnection(true);
+    const health = await api.health();
+    const ok = health && (health.status === 'UP' || health.database === 'UP');
+    updateConnectionPill(ok, ok ? 'Online' : 'Degraded');
   } catch (error) {
-    setConnection(false);
+    updateConnectionPill(false, 'Offline');
   }
 }
 
 function startHealthPolling() {
   stopHealthPolling();
-  checkHealth();
-  healthTimer = setInterval(checkHealth, 30000);
-}
-
-function updateActiveNav(path) {
-  if (!appRoot) return;
-  appRoot.querySelectorAll('[data-route]').forEach((link) => {
-    link.classList.toggle('active', link.dataset.route === path);
-  });
+  pingHealth();
+  healthTimer = setInterval(pingHealth, 15000);
 }
 
 function updateThemeIcons() {
-  const nextIcon = state.theme === 'dark' ? 'bx-sun' : 'bx-moon';
-  const title = state.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
-  const topbarButton = qs('#theme-toggle');
-  if (topbarButton) {
-    topbarButton.innerHTML = icon(nextIcon);
-    topbarButton.title = title;
+  const isDark = state.theme === 'dark';
+  const iconName = isDark ? 'bx-sun' : 'bx-moon';
+  const title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+
+  const shellBtn = qs('#theme-toggle', appRoot);
+  if (shellBtn) {
+    shellBtn.innerHTML = icon(iconName);
+    shellBtn.title = title;
   }
-  const homeButton = qs('#home-theme');
-  if (homeButton) {
-    homeButton.innerHTML = icon(nextIcon);
-    homeButton.title = title;
+  const homeBtn = qs('#home-theme', appRoot);
+  if (homeBtn) {
+    homeBtn.innerHTML = icon(iconName);
+    homeBtn.title = title;
+  }
+  const loginBtn = qs('#login-theme', appRoot);
+  if (loginBtn) {
+    loginBtn.innerHTML = icon(iconName);
+    loginBtn.title = title;
   }
 }
 
@@ -174,65 +189,58 @@ function updateBrandingDom() {
   const settings = state.settings;
   const logo = settings.logoUrl || '/logo.png';
 
-  const sidebarName = qs('#shell-name');
-  if (sidebarName) sidebarName.textContent = settings.businessName;
+  document.title = settings.appTitle || 'Venuity';
 
-  const sidebarLogo = qs('#shell-logo');
-  if (sidebarLogo) {
-    sidebarLogo.style.display = '';
-    sidebarLogo.src = logo;
+  const shellLogo = qs('#shell-logo', appRoot);
+  if (shellLogo) {
+    shellLogo.src = logo;
+    shellLogo.style.display = '';
   }
+  const shellName = qs('#shell-name', appRoot);
+  if (shellName) shellName.textContent = settings.businessName;
 
-  const loginTitle = qs('#login-title');
-  if (loginTitle) loginTitle.textContent = settings.businessName;
-
-  const loginLogo = qs('#login-logo');
-  if (loginLogo) {
-    loginLogo.style.display = '';
-    loginLogo.src = logo;
+  const homeLogo = qs('#home-logo', appRoot);
+  if (homeLogo) {
+    homeLogo.src = logo;
+    homeLogo.style.display = '';
   }
-
-  const homeTitle = qs('#home-title span');
+  const homeTitle = qs('#home-title span', appRoot);
   if (homeTitle) homeTitle.textContent = settings.businessName;
 
-  const homeLogo = qs('#home-logo');
-  if (homeLogo) {
-    homeLogo.style.display = '';
-    homeLogo.src = logo;
+  const loginLogo = qs('#login-logo', appRoot);
+  if (loginLogo) {
+    loginLogo.src = logo;
+    loginLogo.style.display = '';
+  }
+  const loginTitle = qs('#login-title', appRoot);
+  if (loginTitle) loginTitle.textContent = settings.businessName;
+}
+
+async function loadSettings() {
+  try {
+    const fresh = await api.settings();
+    applySettings(fresh);
+  } catch (error) {
+    /* Cached branding is used when the public endpoint is unavailable. */
   }
 }
 
 async function loadPublicBranding() {
   try {
     const branding = await api.branding();
-    if (!branding) return;
-    applySettings({
-      businessName: branding.businessName || state.settings.businessName,
-      primaryColor: branding.primaryColor || state.settings.primaryColor,
-      primaryHoverColor: branding.primaryHoverColor || state.settings.primaryHoverColor,
-      logoUrl: branding.logoUrl || state.settings.logoUrl,
-      appTitle: branding.appTitle || state.settings.appTitle,
-    });
+    applySettings(branding);
   } catch (error) {
-    /* Cached branding is used when the public endpoint is unavailable. */
-  }
-}
-
-async function loadSettings() {
-  try {
-    const settings = await api.settings();
-    applySettings(settings);
-  } catch (error) {
-    if (error.status !== 401) toast('Using cached business settings.', 'info');
+    /* Use defaults in store.js */
   }
 }
 
 function renderLogin() {
-  state.user = null;
   teardownShell();
 
   const settings = state.settings;
   const logo = settings.logoUrl || '/logo.png';
+  const themeIcon = state.theme === 'dark' ? 'bx-sun' : 'bx-moon';
+  const themeTitle = state.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
 
   appRoot.innerHTML = `
     <div class="login-page">
@@ -243,7 +251,8 @@ function renderLogin() {
         <div class="login-header">
           <div class="login-logo-wrapper">
             <img class="login-logo" id="login-logo" src="${escapeHtml(logo)}"
-                 alt="${escapeHtml(settings.businessName)} logo">
+                 alt="${escapeHtml(settings.businessName)}"
+                 onerror="this.style.display='none'">
           </div>
           <h1 class="login-title" id="login-title">${escapeHtml(settings.businessName)}</h1>
           <p class="login-subtitle">Sign in to your account</p>
@@ -268,15 +277,19 @@ function renderLogin() {
               <input id="login-password" type="password" autocomplete="current-password" required
                      placeholder="Enter your password">
               <i class="bx bx-show login-toggle-password" id="login-toggle-password"
-                 role="button" tabindex="0" aria-label="Show password"></i>
+                 title="Show password" role="button" tabindex="0"></i>
             </div>
           </div>
           <button type="submit" class="login-submit-btn" id="login-submit" disabled>
-            ${icon('bx-log-in')}<span>Sign In</span>
+            <span>Sign In</span>
+            ${icon('bx-right-arrow-alt')}
           </button>
         </form>
         <p class="login-footer-text">Contact your administrator to create an account.</p>
       </div>
+      <button type="button" class="login-theme-toggle" id="login-theme" title="${themeTitle}">
+        ${icon(themeIcon)}
+      </button>
     </div>
   `;
 
@@ -339,30 +352,33 @@ function renderLogin() {
     }
   });
 
-  [username, password].forEach((input) => {
-    input.addEventListener('input', () => {
-      hideError();
-      updateSubmit();
-    });
+  username.addEventListener('input', () => {
+    hideError();
+    updateSubmit();
+  });
+  password.addEventListener('input', () => {
+    hideError();
+    updateSubmit();
   });
 
-  function togglePassword() {
+  function togglePasswordVisibility() {
     const show = password.type === 'password';
     password.type = show ? 'text' : 'password';
     toggle.className = `bx ${show ? 'bx-hide' : 'bx-show'} login-toggle-password`;
-    toggle.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+    toggle.title = show ? 'Hide password' : 'Show password';
   }
 
-  toggle.addEventListener('click', togglePassword);
+  toggle.addEventListener('click', togglePasswordVisibility);
   toggle.addEventListener('keydown', (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      togglePassword();
+      togglePasswordVisibility();
     }
   });
 
-  updateSubmit();
-  username.focus();
+  qs('#login-theme', appRoot).addEventListener('click', () => toggleTheme());
+
+  setTimeout(() => username.focus(), 50);
 }
 
 function renderShell() {
@@ -371,7 +387,7 @@ function renderShell() {
   const user = state.user || {};
   const settings = state.settings;
   const logo = settings.logoUrl || '/logo.png';
-  const displayName = user.username || 'User';
+  const displayName = user.fullName || user.username || 'User';
   const role = roleLabel(user.role);
   const collapsed = sidebarCollapsed && !isMobile();
   const themeIcon = state.theme === 'dark' ? 'bx-sun' : 'bx-moon';
@@ -388,16 +404,18 @@ function renderShell() {
           </button>
         </div>
         <ul class="nav-links">
-          ${NAV_ITEMS.map(
-            (item) => `
-              <li>
-                <a href="#${item.path}" data-route="${item.path}">
-                  ${icon(item.icon)}
-                  <span>${escapeHtml(item.label)}</span>
-                </a>
-              </li>
-            `,
-          ).join('')}
+          ${NAV_ITEMS
+      .filter((item) => !item.adminOnly || (user.role === 'ADMIN'))
+      .map(
+        (item) => `
+                <li>
+                  <a href="#${item.path}" data-route="${item.path}">
+                    ${icon(item.icon)}
+                    <span>${escapeHtml(item.label)}</span>
+                  </a>
+                </li>
+              `,
+      ).join('')}
         </ul>
         <div class="sidebar-footer">
           <a href="#" id="sidebar-logout">
@@ -420,7 +438,7 @@ function renderShell() {
               <span class="dot"></span>
               <span id="connection-text">Checking</span>
             </span>
-            <span class="user-chip" title="${escapeHtml(`${displayName} (${role})`)}">
+            <span class="user-chip clickable-chip" id="topbar-user-chip" title="${escapeHtml(`${displayName} (${role}) - Click for My Account`)}" style="cursor:pointer">
               <span class="avatar">${escapeHtml(initials(displayName))}</span>
               <span style="display:flex;flex-direction:column;line-height:1.25;min-width:0">
                 <strong>${escapeHtml(displayName)}</strong>
@@ -486,6 +504,11 @@ function renderShell() {
     logout();
   });
 
+  const userChip = qs('#topbar-user-chip', appRoot);
+  if (userChip) {
+    userChip.addEventListener('click', openMyAccountModal);
+  }
+
   qs('.nav-links', appRoot).addEventListener('click', (event) => {
     if (event.target.closest('a')) closeMobileSidebar();
   });
@@ -526,16 +549,18 @@ function renderHome() {
         <img class="hero-logo-img" id="home-logo" src="${escapeHtml(logo)}" alt="Logo">
         <span>${escapeHtml(settings.businessName)}</span>
       </h1>
-      ${user.username ? `<p class="welcome-line">Welcome, <strong>${escapeHtml(user.username)}</strong></p>` : ''}
+      ${user.username ? `<p class="welcome-line">Welcome, <strong>${escapeHtml(user.fullName || user.username)}</strong></p>` : ''}
       <div class="home-grid">
-        ${HOME_CARDS.map(
-          (card) => `
-            <a class="home-card ${card.cls}" href="#${card.path}">
-              <div class="icon-container">${icon(card.icon)}</div>
-              <span>${escapeHtml(card.label)}</span>
-            </a>
-          `,
-        ).join('')}
+        ${HOME_CARDS
+      .filter((card) => !card.adminOnly || (user.role === 'ADMIN'))
+      .map(
+        (card) => `
+              <a class="home-card ${card.cls}" href="#${card.path}">
+                <div class="icon-container">${icon(card.icon)}</div>
+                <span>${escapeHtml(card.label)}</span>
+              </a>
+            `,
+      ).join('')}
       </div>
     </div>
   `;
@@ -578,10 +603,21 @@ function ensureShell() {
 function handleRoute() {
   if (!state.user) return;
 
+  if (state.user.mustChangePassword) {
+    promptForcedPasswordChange();
+    return;
+  }
+
   const path = currentPath();
   const route = ROUTES[path];
   if (!route) {
     location.hash = '#/';
+    return;
+  }
+
+  if (route.adminOnly && state.user.role !== 'ADMIN') {
+    location.hash = '#/';
+    toast('Administrator access required.', 'error');
     return;
   }
 
@@ -609,6 +645,264 @@ function handleRoute() {
     console.error(error);
     content.innerHTML = emptyState('bx-error-circle', 'Could not load page', error.message);
     toast(error.message, 'error');
+  }
+}
+
+function promptForcedPasswordChange() {
+  if (forcePasswordModalActive) return;
+  forcePasswordModalActive = true;
+
+  openModal({
+    title: 'Password Change Required',
+    subtitle: 'You must set a new secure password before you can proceed.',
+    size: 'narrow',
+    closeOnBackdrop: false,
+    body: `
+      <form id="force-pass-form" autocomplete="off">
+        <div id="fp-error" style="display:none;margin-bottom:14px;padding:10px 14px;border-radius:8px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#ef4444;font-size:13px"></div>
+        <div class="form-group">
+          <label for="fp-current">Current / Temporary Password *</label>
+          <input class="form-input" id="fp-current" type="password" required>
+        </div>
+        <div class="form-group">
+          <label for="fp-new">New Password *</label>
+          <input class="form-input" id="fp-new" type="password" required minlength="8" placeholder="At least 8 chars, 1 letter, 1 number">
+        </div>
+        <div class="form-group">
+          <label for="fp-confirm">Confirm New Password *</label>
+          <input class="form-input" id="fp-confirm" type="password" required>
+        </div>
+      </form>
+    `,
+    footer: `
+      <button type="button" class="btn btn-secondary" id="fp-logout-btn">Log out</button>
+      <button type="submit" form="force-pass-form" class="btn btn-primary" id="fp-submit">Update Password</button>
+    `,
+    onMount(modalRoot, close) {
+      const closeBtn = qs('.modal-close', modalRoot);
+      if (closeBtn) closeBtn.style.display = 'none';
+
+      qs('#fp-logout-btn', modalRoot).addEventListener('click', () => {
+        close();
+        forcePasswordModalActive = false;
+        logout();
+      });
+
+      const form = qs('#force-pass-form', modalRoot);
+      const errBox = qs('#fp-error', modalRoot);
+      const submitBtn = qs('#fp-submit', modalRoot);
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errBox.style.display = 'none';
+        const currentPassword = qs('#fp-current', modalRoot).value;
+        const newPassword = qs('#fp-new', modalRoot).value;
+        const confirmPassword = qs('#fp-confirm', modalRoot).value;
+
+        if (newPassword !== confirmPassword) {
+          errBox.textContent = 'New passwords do not match.';
+          errBox.style.display = 'block';
+          return;
+        }
+
+        busyButton(submitBtn, true, 'Updating...');
+        try {
+          await api.changePassword({ currentPassword, newPassword });
+          state.user.mustChangePassword = false;
+          forcePasswordModalActive = false;
+          close();
+          toast('Password updated successfully!', 'success');
+          handleRoute();
+        } catch (err) {
+          errBox.textContent = err.message || 'Failed to update password.';
+          errBox.style.display = 'block';
+        } finally {
+          busyButton(submitBtn, false);
+        }
+      });
+    },
+    onClose() {
+      forcePasswordModalActive = false;
+    },
+  });
+}
+
+function openMyAccountModal() {
+  const u = state.user;
+  if (!u) return;
+
+  openModal({
+    title: 'My Account',
+    subtitle: `@${escapeHtml(u.username)} (${escapeHtml(roleLabel(u.role))})`,
+    size: 'medium',
+    body: `
+      <div class="user-mgmt-tabs" style="margin-bottom:16px">
+        <button type="button" class="tab-btn active" id="acc-tab-profile">Profile</button>
+        <button type="button" class="tab-btn" id="acc-tab-security">Security &amp; Password</button>
+        <button type="button" class="tab-btn" id="acc-tab-sessions">Active Sessions</button>
+      </div>
+
+      <div id="acc-panel-profile">
+        <form id="acc-profile-form" autocomplete="off">
+          <div class="form-group">
+            <label for="acc-fullname">Full Name</label>
+            <input class="form-input" id="acc-fullname" value="${escapeHtml(u.fullName || '')}">
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="acc-email">Email</label>
+              <input class="form-input" id="acc-email" type="email" value="${escapeHtml(u.email || '')}">
+            </div>
+            <div class="form-group">
+              <label for="acc-phone">Phone</label>
+              <input class="form-input" id="acc-phone" value="${escapeHtml(u.phone || '')}">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" id="acc-profile-submit" style="margin-top:8px">Save Profile</button>
+        </form>
+      </div>
+
+      <div id="acc-panel-security" style="display:none">
+        <form id="acc-password-form" autocomplete="off">
+          <div id="acc-pass-error" style="display:none;margin-bottom:14px;padding:10px 14px;border-radius:8px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#ef4444;font-size:13px"></div>
+          <div class="form-group">
+            <label for="acc-curr-pass">Current Password *</label>
+            <input class="form-input" id="acc-curr-pass" type="password" required>
+          </div>
+          <div class="form-group">
+            <label for="acc-new-pass">New Password *</label>
+            <input class="form-input" id="acc-new-pass" type="password" required minlength="8" placeholder="Minimum 8 characters with letters &amp; numbers">
+          </div>
+          <button type="submit" class="btn btn-primary" id="acc-pass-submit" style="margin-top:8px">Change Password</button>
+        </form>
+      </div>
+
+      <div id="acc-panel-sessions" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span class="muted" style="font-size:13px">Devices where you are currently signed in:</span>
+          <button type="button" class="btn btn-sm btn-danger" id="acc-logout-others-btn">Sign Out Other Devices</button>
+        </div>
+        <div id="acc-sessions-list">Loading sessions...</div>
+      </div>
+    `,
+    footer: `<button type="button" class="btn btn-secondary" data-modal-close>Close</button>`,
+    onMount(modalRoot, close) {
+      const pProfile = qs('#acc-panel-profile', modalRoot);
+      const pSecurity = qs('#acc-panel-security', modalRoot);
+      const pSessions = qs('#acc-panel-sessions', modalRoot);
+
+      const tProfile = qs('#acc-tab-profile', modalRoot);
+      const tSecurity = qs('#acc-tab-security', modalRoot);
+      const tSessions = qs('#acc-tab-sessions', modalRoot);
+
+      function showTab(panel, activeBtn) {
+        pProfile.style.display = 'none';
+        pSecurity.style.display = 'none';
+        pSessions.style.display = 'none';
+        tProfile.classList.remove('active');
+        tSecurity.classList.remove('active');
+        tSessions.classList.remove('active');
+
+        panel.style.display = 'block';
+        activeBtn.classList.add('active');
+      }
+
+      tProfile.addEventListener('click', () => showTab(pProfile, tProfile));
+      tSecurity.addEventListener('click', () => showTab(pSecurity, tSecurity));
+      tSessions.addEventListener('click', () => {
+        showTab(pSessions, tSessions);
+        loadMySessionsList(qs('#acc-sessions-list', modalRoot));
+      });
+
+      // Profile submit
+      qs('#acc-profile-form', modalRoot).addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = qs('#acc-profile-submit', modalRoot);
+        busyButton(submitBtn, true, 'Saving...');
+        try {
+          const updated = await api.updateMe({
+            fullName: qs('#acc-fullname', modalRoot).value.trim(),
+            email: qs('#acc-email', modalRoot).value.trim() || undefined,
+            phone: qs('#acc-phone', modalRoot).value.trim() || undefined,
+          });
+          state.user = updated;
+          toast('Profile updated successfully!', 'success');
+          close();
+          renderShell();
+          handleRoute();
+        } catch (err) {
+          toast(err.message, 'error');
+        } finally {
+          busyButton(submitBtn, false);
+        }
+      });
+
+      // Password submit
+      qs('#acc-password-form', modalRoot).addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const errBox = qs('#acc-pass-error', modalRoot);
+        errBox.style.display = 'none';
+        const submitBtn = qs('#acc-pass-submit', modalRoot);
+        busyButton(submitBtn, true, 'Updating...');
+        try {
+          await api.changePassword({
+            currentPassword: qs('#acc-curr-pass', modalRoot).value,
+            newPassword: qs('#acc-new-pass', modalRoot).value,
+          });
+          toast('Password changed successfully!', 'success');
+          close();
+        } catch (err) {
+          errBox.textContent = err.message || 'Failed to change password.';
+          errBox.style.display = 'block';
+        } finally {
+          busyButton(submitBtn, false);
+        }
+      });
+
+      // Logout others
+      qs('#acc-logout-others-btn', modalRoot).addEventListener('click', async () => {
+        await api.logoutOthers();
+        toast('All other sessions signed out.', 'success');
+        loadMySessionsList(qs('#acc-sessions-list', modalRoot));
+      });
+    },
+  });
+}
+
+async function loadMySessionsList(container) {
+  try {
+    const list = await api.mySessions();
+    if (!list.length) {
+      container.innerHTML = `<p class="muted" style="font-size:13px">No other active sessions.</p>`;
+      return;
+    }
+    container.innerHTML = `
+      <table class="data-table" style="font-size:12px">
+        <thead><tr><th>IP</th><th>Device / Browser</th><th>Last Active</th><th style="text-align:right">Action</th></tr></thead>
+        <tbody>
+          ${list.map((s) => `
+            <tr>
+              <td>${escapeHtml(s.ip || '—')}</td>
+              <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(s.userAgent || 'Web browser')}</td>
+              <td>${new Date(s.lastSeenAt).toLocaleString()}</td>
+              <td style="text-align:right">
+                <button type="button" class="btn btn-sm btn-secondary my-sess-revoke" data-sid="${s.id}">Revoke</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+
+    qsa('.my-sess-revoke', container).forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        await api.revokeMySession(btn.dataset.sid);
+        toast('Session revoked.', 'success');
+        loadMySessionsList(container);
+      });
+    });
+  } catch (err) {
+    container.innerHTML = `<p class="text-danger" style="font-size:12px">${escapeHtml(err.message)}</p>`;
   }
 }
 
