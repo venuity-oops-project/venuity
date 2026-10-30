@@ -161,6 +161,7 @@ real cutover.
 | `JWT_REFRESH_DAYS` | `7` | Refresh-token lifetime |
 | `BOOTSTRAP_ADMIN_USER` | empty | Username created on first start if set |
 | `BOOTSTRAP_ADMIN_PASSWORD` | empty | Password for the bootstrap ADMIN |
+| `BOOTSTRAP_ADMIN_FORCE_RESET` | `true` (dev) / `false` (prod) | When true, overwrites existing bootstrap admin password on startup |
 
 Do not commit `.env`. Use `.env.example` as the template.
 
@@ -181,14 +182,13 @@ Do not commit `.env`. Use `.env.example` as the template.
 
 - Set a unique `JWT_SECRET` of at least 32 random bytes outside local development.
 - Terminate TLS at a reverse proxy; the application itself serves plain HTTP.
-- Refresh-token blacklist entries are held in memory and are lost on restart.
+- Refresh tokens are tracked persistently in the `user_session` table with SHA-256 token hashing; token invalidation is enforced immediately via `token_version` on password changes and session revocation.
 - The migration tool reads SQLite read-only and never copies production data into
   the repository.
 - The physical camera path is not covered by automated tests; manual check-in is.
 
 ## Known gaps
 
-- User administration beyond the bootstrap ADMIN is not exposed by the web UI.
 - The load/performance gate and dependency-vulnerability scan in the migration
   plan have not been completed.
 - Physical QR-camera scanning needs hardware verification.

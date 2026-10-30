@@ -37,7 +37,7 @@ The runner automates:
 
 ## 6. Bootstrap Authentication & Credentials
 - Default admin credentials: `admin` / `admin` (configurable via `BOOTSTRAP_ADMIN_USER` and `BOOTSTRAP_ADMIN_PASSWORD`).
-- `BootstrapAdminRunner` synchronizes and updates the admin password and permissions automatically on startup whenever bootstrap credentials are configured, preventing lockout even if legacy migrated fixture data previously contained a different password.
+- `BootstrapAdminRunner` respects `BOOTSTRAP_ADMIN_FORCE_RESET`. In production, it defaults to `false` (only creating an initial admin if missing and preserving user-changed passwords across redeployments). In local development, it defaults to `true` to maintain convenient `admin/admin` developer defaults. Force-reset operations record an explicit audit log entry.
 
 ## 7. Clean Repository Layout
 Only active, relevant files remain in the root directory:
@@ -49,8 +49,27 @@ Only active, relevant files remain in the root directory:
 - `legacy/`: Preserved archive of all deprecated/legacy directories and files (`backend/`, `frontend/`, `frontend_old/`, `src-tauri/`, `legacy_assets/`, `downloads/`, and legacy config files) preserving their exact file structure; completely excluded from git tracking via `.gitignore`.
 
 ## 8. User Management UI & API
-- **API:** Dedicated ADMIN-only endpoints `POST /api/users` (create user) and `GET /api/users` (list users).
-- **Settings UI:** The Settings page includes an "Add user" button in the page header and an interactive "User accounts" sidebar card. Clicking either button opens a glassmorphism popup modal where administrators can create new Staff or Admin accounts with username, password, role (`STAFF` or `ADMIN`), and optional profile details.
+- **Top-Level "Users" Section:** Dedicated ADMIN-only navigation tab (`/users`) with full user lifecycle management.
+- **Removed from Settings:** The legacy "Add user" header button and "User accounts" sidebar card have been cleanly removed from the Settings page.
+- **User Directory:** Paginated list of users with search by name/username/email, role filtering (`ALL`, `ADMIN`, `STAFF`), status filtering (`ALL`, `ACTIVE`, `DISABLED`, `LOCKED`, `EXPIRED`, `ARCHIVED`), and multi-select.
+- **User Actions:**
+  - Create user with automatic temporary password generator or custom password, role assignment, and optional profile fields (full name, phone, notes).
+  - Edit user profiles, phone, notes, and roles with last-active-admin protection.
+  - Reset temporary password with forced change flag (`must_change_password`) and cryptographic password generation.
+  - Disable / Enable accounts, Lock / Unlock accounts.
+  - Soft-delete (Archive) and Restore accounts.
+  - Bulk actions bar (Enable, Disable, Archive, Restore, Set Role).
+- **Import & Export:**
+  - CSV Export: Stream user directory to CSV with safe field projections (excluding password hashes and secrets).
+  - CSV Import: Two-stage workflow with drag-and-drop file upload, dry-run schema and conflict validation preview with per-row status, and atomic commit generating temporary credentials.
+- **User Activity & History Drawer:** Slide-out drawer showing user metadata, login timestamps, IP addresses, failed login counter, lockout state, and a 30-day cashier summary (top-up count & volume, check-in count & volume, recent transaction history).
+- **Audit Logging:** Dedicated Audit Log tab (`/api/audit-log`) tracking administrative and authentication events (`LOGIN_SUCCESS`, `LOGIN_FAILED`, `ACCOUNT_LOCKOUT`, `USER_CREATED`, `USER_UPDATED`, `PASSWORD_RESET`, `BULK_ACTION`, etc.) with actor, target, timestamp, IP, details, and CSV export.
+- **Security & Session Invalidation:**
+  - Persistent refresh token tracking in `user_session` table using SHA-256 token hashing.
+  - Instant token invalidation via `token_version` on password changes, user disablement, or session revocation.
+  - Account lockout after 5 consecutive failed login attempts (15-minute lock), unlockable by administrators.
+  - First-login forced password change gating at filter level with blocking modal prompt.
+  - Self-service "My Account" profile and password update modal accessed via topbar user chip.
 
 ## 9. Seed & Analytics Demonstration Data
 - **Timeframe:** January 1, 2026 to October 30, 2026 (~303 days).

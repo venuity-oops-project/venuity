@@ -15,6 +15,7 @@ following environment variables:
 | `JWT_SECRET` | yes | At least 32 random bytes; changing it invalidates all tokens |
 | `BOOTSTRAP_ADMIN_USER` | no | Creates an ADMIN on first start if absent |
 | `BOOTSTRAP_ADMIN_PASSWORD` | no | Required for the bootstrap user to be created |
+| `BOOTSTRAP_ADMIN_FORCE_RESET` | no | Default `true` in dev, `false` in prod. When true, overwrites existing admin password on start |
 | `SERVER_PORT` | no | Default `8080` |
 
 Never commit `.env`. The repository `.gitignore` excludes it.
@@ -100,13 +101,45 @@ customer balance, and one check-in.
 
 Rotate the secret after suspected token exposure or when an operator leaves.
 
-## Users
+## Users & Administrative Recovery
 
-The only built-in account creation path is the bootstrap ADMIN environment
-variables. The account is created only when it does not already exist. There is
-currently no web UI or REST endpoint for creating additional users; this is a
-known gap. Do not insert plaintext passwords into MySQL. Plan a reviewed admin
-operation before adding more operators.
+User administration is available directly in the web UI under the top-level
+"Users" navigation tab (`#/users`) for accounts with the `ADMIN` role.
+Administrators can:
+- Create new STAFF or ADMIN accounts with temporary or custom passwords.
+- Reset passwords, generating temporary credentials with forced first-login change.
+- Edit profile details (full name, phone, notes) and roles.
+- Lock or unlock accounts (unlocking accounts locked by brute-force protection).
+- Disable, soft-delete (archive), and restore user accounts.
+- Perform bulk state and role modifications.
+- Preview and import users in bulk via CSV.
+- Export user directories to CSV (safely excluding password hashes).
+- Review authentication and administration events in the Audit Log tab.
+
+### Admin Account Recovery Procedure
+If all administrative credentials are lost or the admin account is accidentally
+locked or misconfigured:
+1. Set the following environment variables in your deployment secret store or `.env`:
+   - `BOOTSTRAP_ADMIN_USER=admin` (or desired username)
+   - `BOOTSTRAP_ADMIN_PASSWORD=<new-strong-password>` (min 12 characters in prod)
+   - `BOOTSTRAP_ADMIN_FORCE_RESET=true`
+2. Restart the application once. `BootstrapAdminRunner` will overwrite the credentials
+   and ensure the account has `ADMIN` role, active status, and is unlocked, while
+   recording an explicit `BOOTSTRAP_RESET` audit log entry.
+3. Once access is restored, set `BOOTSTRAP_ADMIN_FORCE_RESET=false` or remove it to
+   prevent subsequent deployments from overwriting changed credentials.
+
+## Session Management and Audit Retention
+
+- **Session Invalidation:** Refresh tokens are tracked persistently in the
+  `user_session` table with SHA-256 token hashing. Revoking a session, disabling
+  an account, or changing a password increments `token_version`, immediately
+  invalidating existing access JWTs across all active client devices.
+- **Automated Cleanup:** `ScheduledCleanupService` runs daily at 03:00 UTC:
+  - Purges expired user sessions older than 30 days.
+  - Purges audit log records older than 90 days.
+- **Manual Session Purge:** Users can revoke individual sessions or all other
+  sessions from the "My Account" modal.
 
 ## Migration and cutover
 

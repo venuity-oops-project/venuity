@@ -64,11 +64,26 @@ evidence for each item.
 - [ ] Final SQLite and MySQL backups exist and a restore has been tested.
 - [ ] Old system remains read-only for the agreed rollback window.
 
+## User management checks
+
+- [x] Top-level "Users" navigation tab visible only to ADMINs; hidden/redirected for STAFF.
+- [x] Settings page header "Add user" button and sidebar "User accounts" card cleanly removed without layout breakage.
+- [x] Create user with generated temporary password; confirm `must_change_password` flag is set.
+- [x] First login with temporary password presents blocking password-change dialog and gates other API endpoints.
+- [x] User directory filtering by search query, role (`ADMIN`, `STAFF`), and status (`ACTIVE`, `DISABLED`, `LOCKED`, `EXPIRED`, `ARCHIVED`).
+- [x] Edit user details (name, phone, notes) and role with last-active-admin downgrade prevention.
+- [x] Reset password generates temporary password and immediately invalidates existing user sessions via `token_version`.
+- [x] 5 consecutive failed login attempts trigger 15-minute account lockout; admin unlock immediately restores access.
+- [x] Bulk action toolbar operates cleanly across multi-selected users (Enable, Disable, Archive, Restore, Set Role).
+- [x] CSV user export downloads valid CSV without exposing password hashes or tokens.
+- [x] CSV user import displays dry-run preview with schema validation and commits valid records.
+- [x] User activity drawer displays metadata, login history, and 30-day cashier performance metrics.
+- [x] Audit Log tab displays filterable security events (`LOGIN_SUCCESS`, `LOGIN_FAILED`, `ACCOUNT_LOCKOUT`, `USER_CREATED`, `PASSWORD_RESET`, etc.) with CSV export.
+- [x] Self-service "My Account" modal accessible from topbar user chip allows profile and password updates.
+
 ## Known gaps
 
 - Physical camera scanning has not been exercised with hardware.
-- User administration beyond the bootstrap ADMIN is not implemented in the UI.
-- The refresh-token blacklist is in memory and is lost on restart.
 - Two non-reachable Spring Framework 6.2 advisories are accepted in
   `docs/migration/DEPENDENCY_SCAN.md`; reassess them when upgrading to Spring
   Boot 4.x.

@@ -19,8 +19,8 @@ contract plus the legacy `/api/v1` contract used by the old React client.
 
 The SPA is not built by npm. `index.html` loads the CSS, the application modules,
 and the vendored Chart.js/jsQR files directly. The hash router uses
-`#/dashboard`, `#/customers`, `#/recharge`, `#/scan`, `#/analytics` and
-`#/settings`; login and the home screen are rendered by `app.js`.
+`#/dashboard`, `#/customers`, `#/recharge`, `#/scan`, `#/analytics`,
+`#/settings` and `#/users` (ADMIN only); login and the home screen are rendered by `app.js`.
 
 ## Modules
 
@@ -47,7 +47,9 @@ and the vendored Chart.js/jsQR files directly. The hash router uses
 
 | Table | Notes |
 |---|---|
-| `app_user` | ADMIN/STAFF roles, BCrypt hash, legacy PBKDF2 hashes rehashed on login |
+| `app_user` | ADMIN/STAFF roles, BCrypt hash, profile fields (name, phone, notes), security state (`must_change_password`, `failed_login_attempts`, `locked_until`, `token_version`, `deleted_at`) |
+| `user_session` | Persistent refresh token sessions tracked by SHA-256 token hash, client IP, user-agent, expiry and revocation timestamps |
+| `audit_log` | Immutable append-only audit trail for authentication, security and administrative user actions |
 | `business_settings` | Single row (`id = 1`), fee and branding settings |
 | `customer` | Unique `public_id` and `public_code`, non-negative wallet balance, soft active flag |
 | `wallet_transaction` | Append-only ledger; modern amounts are signed (top-up positive, check-in negative), `balance_after` is stored |
@@ -73,9 +75,10 @@ Important database invariants:
 4. ADMIN can edit settings and deactivate/reactivate customers. STAFF can read
    data and perform recharge/check-in. The legacy endpoints preserve the source
    role rules.
-5. `POST /api/auth/refresh` rotates the pair; `POST /api/auth/logout` blacklists
-   the refresh token. The blacklist is in memory, so a restart clears it.
-6. Login attempts are rate-limited per IP and username.
+5. `POST /api/auth/refresh` rotates the pair and revokes the prior refresh session; `POST /api/auth/logout` revokes the persistent session. Sessions are stored in MySQL with SHA-256 hashes, surviving server restarts.
+6. Token revocation is enforced instantly via `token_version` on password changes, user disablement, or session termination.
+7. Brute-force protection automatically locks accounts for 15 minutes after 5 consecutive failed attempts.
+8. First-login password changes are enforced for accounts created with temporary passwords via security filter gating and a blocking UI prompt.
 
 ## Money and idempotency
 
