@@ -82,4 +82,4 @@ Built with a modernized tech stack:
 
 ## 👥 Contributors
 1. [**Aaron S Christo**](https://github.com/Aaronschristo/)
-2. [**Sarang P k**](https://github.com/sarangpkannan123-sketch)
+2. [**Sarang P K**](https://github.com/sarangpkannan123-sketch)
