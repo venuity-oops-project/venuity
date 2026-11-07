@@ -79,3 +79,6 @@ Built with a modernized tech stack:
 3. **Recharge Wallets:** Head to **Recharge** to add money to customer accounts (supports QR auto-fill).
 4. **Scan Passes:** Open **Check-in**, point the camera at a customer's QR code, and watch the system automatically debit their wallet.
 5. **Insights:** Track your revenue and visitor counts through the **Analytics** dashboard featuring interactive charts.
+
+## 👥 Contributors
+1. [**Aaron S Christo**](https://github.com/Aaronschristo/)
